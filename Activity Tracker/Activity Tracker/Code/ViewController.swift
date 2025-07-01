@@ -79,6 +79,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 if username == user.details.username {
                     if password == contentManager.savedTextfieldInformation[0] {
                         contentManager.currentDisplay = "That password is correct, the save data for account \(user.details.username) has been loaded. Please enjoy using the application!"
+                        clearTextFieldData()
                         loadGameData()
                         contentManager.currentOptions = [(0,"Begin Using The Program",1)]
                         break
@@ -92,18 +93,22 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case -16:
             contentManager.currentDisplay = "Please input your details"
             contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Input Data",1)]
+            clearTextFieldData()
         case -15: // Create Private Account Confirmation
             if acceptableAccount(input: contentManager.savedTextfieldInformation) {
                 if contentManager.savedTextfieldInformation[1].localizedStandardContains("-") {
                     contentManager.currentDisplay = "Unfortunately my program doesn't allow for '-' to be placed within usernames or passwords, I'm very sorry for the inconvenience but please change your input."
                     contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Submit Data",1)]
+                    clearTextFieldData()
                 } else {
                     if contentManager.savedTextfieldInformation.contains("") {
                         contentManager.currentDisplay = "Unfortunately my program doesn't allow for ' ' to be used as usernames or passwords, I'm very sorry for the inconvenience but please change your input."
                         contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Submit Data",1)]
+                        clearTextFieldData()
                     } else {
                         user.details.password = contentManager.savedTextfieldInformation[0]
                         user.details.username = contentManager.savedTextfieldInformation[1]
+                        clearTextFieldData()
                         addPassword()
                         contentManager.currentDisplay = "Congratulations, your account \(user.details.username) has been created!"
                         contentManager.currentOptions = [(-14,"Begin Application Tutorial",1)]
@@ -112,6 +117,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             } else {
                 contentManager.currentDisplay = "Unfortunately that username is already in use, please select a different one"
                 contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Submit Data",1)]
+                clearTextFieldData()
             }
         case -14:
             contentManager.currentDisplay = "Hello my dear user, I'm Domenic Disco, the creator of this application that you are using.\n\nI'm assuming that you know what the app is about, but if you don't, it's a method of storing players and sorting for a given activity of any type"
@@ -147,13 +153,14 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 0: // Main Screen
             contentManager.currentDisplay = "Hello \(user.details.username), what do you want to do?"
             contentManager.currentOptions = [(1,"View Activities",1),(0,"Modify System Settings",1),(0,"Log Out",1)]
+            saveGameData()
         case 1:
             if user.activities.isEmpty {
                 contentManager.currentDisplay = "What would you like to do"
                 contentManager.currentOptions = [(2,"Create New Activity",1),(0,"Exit",1)]
             } else {
                 contentManager.currentDisplay = "Please select the activity that you want to view using the dropdown menu. Or press 'Create New Activity' to create a new activity."
-                contentManager.currentOptions = [(0,"Activity",7),(2,"View Activity",1),(2,"Create New Activity",1)]
+                contentManager.currentOptions = [(0,"Activity",7),(6,"View Activity",1),(2,"Create New Activity",1)]
                 contentManager.tableValues = []
                 contentManager.storedDropdowns = []
                 for activity in user.activities {
@@ -168,6 +175,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             if contentManager.savedTextfieldInformation[0] == "" {
                 contentManager.currentDisplay = "Unfortunately, you cannot give an activity the name of ''. That would just not work with the rest of my code. Please give it an actual name"
                 contentManager.currentOptions = [(2,"Exit",1)]
+                clearTextFieldData()
             } else {
                 var dupeName: Bool = false
                 for activity in user.activities {
@@ -178,6 +186,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 if dupeName {
                     contentManager.currentDisplay = "Unfortunately, you cannot give an activity a name that's already been used. Please give it a different name"
                     contentManager.currentOptions = [(2,"Exit",1)]
+                    clearTextFieldData()
                 } else {
                     contentManager.savedText.append(contentManager.savedTextfieldInformation[0])
                     contentManager.currentDisplay = "Please input the statistics that will be used for activity \(contentManager.savedTextfieldInformation[0]).\n\nTo do this, write down the statistic name in the text field, and then exit the text field to add it to the table."
@@ -193,8 +202,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Create Activity Here
             var newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], people: [:], combined: StatisticHolder(statistics: []), overallStatistics: [])
             for (title,value) in contentManager.tableValues {
-                newActivity.overallStatistics.append(Statistic(name: title, value: Int(value)!, rule: []))
+                newActivity.overallStatistics.append(Statistic(name: title, value: Int(value) ?? 0, rule: []))
             }
+            user.activities.append(newActivity)
+            saveGameData()
             
             contentManager.currentOptions = [(1,"Exit Menu",1)]
         case 6:
@@ -357,8 +368,11 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         return -1
     }
     
+    func clearTextFieldData() {
+        contentManager.savedTextfieldInformation = []
+    }
+    
     func saveTextFieldData() {
-        contentManager.savedTextfieldInformation.removeAll()
         for textField in textFields {
             contentManager.savedTextfieldInformation.append(textField.text ?? "")
         }
