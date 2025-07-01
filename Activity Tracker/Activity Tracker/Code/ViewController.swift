@@ -223,16 +223,36 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 10:
             contentManager.currentDisplay = ""
             contentManager.currentOptions = []
-        case 11: break
-        case 12: break
-        case 13: break
-        case 14: break
-        case 15: break
-        case 16: break
-        case 17: break
-        case 18: break
-        case 19: break
-        case 20: break
+        case 11:
+            contentManager.currentDisplay = ""
+            contentManager.currentOptions = []
+        case 12:
+            contentManager.currentDisplay = ""
+            contentManager.currentOptions = []
+        case 13:
+            contentManager.currentDisplay = ""
+            contentManager.currentOptions = []
+        case 14:
+            contentManager.currentDisplay = ""
+            contentManager.currentOptions = []
+        case 15:
+            contentManager.currentDisplay = ""
+            contentManager.currentOptions = []
+        case 16:
+            contentManager.currentDisplay = ""
+            contentManager.currentOptions = []
+        case 17:
+            contentManager.currentDisplay = ""
+            contentManager.currentOptions = []
+        case 18:
+            contentManager.currentDisplay = ""
+            contentManager.currentOptions = []
+        case 19:
+            contentManager.currentDisplay = ""
+            contentManager.currentOptions = []
+        case 20:
+            contentManager.currentDisplay = ""
+            contentManager.currentOptions = []
         case 21: break
         case 22: break
         case 23: break
