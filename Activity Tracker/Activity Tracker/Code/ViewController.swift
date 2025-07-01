@@ -200,7 +200,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 5:
             contentManager.currentDisplay = "Congratulations, you have successfully created the activity \(contentManager.savedTextfieldInformation[0]). This activity has \(contentManager.tableValues.count) statistics being tracked!"
             // Create Activity Here
-            var newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], people: [:], combined: StatisticHolder(statistics: []), overallStatistics: [])
+            var newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], people: [:], groups: [:], teams: [:], combined: StatisticHolder(statistics: []), overallStatistics: [])
             for (title,value) in contentManager.tableValues {
                 newActivity.overallStatistics.append(Statistic(name: title, value: Int(value) ?? 0, rule: []))
             }
@@ -209,7 +209,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             contentManager.currentOptions = [(1,"Exit Menu",1)]
         case 6:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "View Activity Screen"
             contentManager.currentOptions = []
         case 7:
             contentManager.currentDisplay = ""

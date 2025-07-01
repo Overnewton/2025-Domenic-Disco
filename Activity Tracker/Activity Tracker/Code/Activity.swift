@@ -19,6 +19,8 @@ struct UserDetails: Codable {
 struct Activity: Codable {
     var name: String
     var people: [String : Person]
+    var groups: [Int : String]
+    var teams: [Int : String]
     var combined: StatisticHolder
     
     // Array of just the statistics with no values associated
