@@ -197,7 +197,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 }
             }
         case 4:
-            contentManager.currentDisplay = "Please add any basic statistics to this activity, such as points scores starting at 0, or whatever initial values you want to use."
+            contentManager.currentDisplay = "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use."
             contentManager.currentOptions = [(0,"Statistic",6),(5,"Finalise Activity",1),(1,"Exit Menu",1)]
         case 5:
             contentManager.currentDisplay = "Congratulations, you have successfully created the activity \(contentManager.savedTextfieldInformation[0]). This activity has \(contentManager.tableValues.count) statistics being tracked!"
@@ -737,7 +737,17 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         
         // Update the value in the tuple while preserving title and type
         let (title, value) = contentManager.tableValues[index]
-        contentManager.tableValues[index] = (title, newText)
+        
+        if contentManager.currentDisplay == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." {
+            if let integerCheck: Int = Int(newText) {
+                contentManager.tableValues[index] = (title, newText)
+            } else {
+                // Don't Accept Input
+            }
+        } else {
+            contentManager.tableValues[index] = (title, newText)
+        }
+        
         
         // Reload the table view to reflect changes
         if let tableView = view.viewWithTag(999) as? UITableView {
