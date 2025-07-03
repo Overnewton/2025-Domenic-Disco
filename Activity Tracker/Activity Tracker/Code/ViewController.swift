@@ -739,7 +739,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         let (title, value) = contentManager.tableValues[index]
         
         if contentManager.currentDisplay == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." {
-            if let integerCheck: Int = Int(newText) {
+            if let integerCheck: Float = Float(newText) {
                 contentManager.tableValues[index] = (title, newText)
             } else {
                 // Don't Accept Input
