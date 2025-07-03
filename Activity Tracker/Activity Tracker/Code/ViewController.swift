@@ -121,16 +121,16 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
         case -14:
             contentManager.currentDisplay = "Hello my dear user, I'm Domenic Disco, the creator of this application that you are using.\n\nI'm assuming that you know what the app is about, but if you don't, it's a method of storing players and sorting for a given activity of any type"
-            contentManager.currentOptions = [(-13,"Next",1)]
+            contentManager.currentOptions = [(-13,"Next",1),(-2,"Skip Tutorial",1)]
         case -13:
             contentManager.currentDisplay = "You could store any kind of activity, maybe board game statistics, league of legends, mario kart race times, basketball player statistics. You could even go as far as storing student grades within this application, since it's perfect for storing and sorting any kind of statistics for a group or collection of people"
-            contentManager.currentOptions = [(-12,"Next",1)]
+            contentManager.currentOptions = [(-12,"Next",1),(-2,"Skip Tutorial",1)]
         case -12:
             contentManager.currentDisplay = "Now, how do you use my application?\n\nFirst, you create an activity. This will be done in a 3 step procedure.\n\n1 - Add the activity name, just input it into a text field and press a button to confirm\n\n2 - Add the activities statistics, type the statistic name into a text field, select it's type in a dropdown menu, and then press a button to add it\n\n3 - Add any base values for statistics, you select a statistic using a dropdown menu, and then input the basic value into the text field below.\n\nAnd that's all it takes, just do those 3 steps and you'll have an activity!"
-            contentManager.currentOptions = [(-11,"Next",1)]
+            contentManager.currentOptions = [(-11,"Next",1),(-2,"Skip Tutorial",1)]
         case -11:
             contentManager.currentDisplay = "But just having an activity isn't enough, you need to have some players otherwise there's not much point to the application. To make players, you follow another easy 3 step procedure\n\n1 - Add the players name, once again in a text field\n\n2 - Set the players statistics using the same method as setting basic statistics for an activity\n\n3 - Then you can decide if you want the player to be part of a team or group, allowing them to be more easily sorted.\n\nAnd that's all it needs, just 3 easy steps and you can fill up your activity with any player you'd need!"
-            contentManager.currentOptions = [(-10,"Next",1)]
+            contentManager.currentOptions = [(-10,"Next",1),(-2,"Skip Tutorial",1)]
         case -10:
             contentManager.currentDisplay = "And that's all you'll need to use my program! There are some complicated features later on, such as my complicated sorting and searching algorithms, but those will be covered when you get to them. No reason to overcomplicate you experience right now.\n\nGood luck with your storing and managing of activities!"
             contentManager.currentOptions = [(0,"Begin The Program",1)]
@@ -141,7 +141,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case -5: break
         case -4: break
         case -3: break
-        case -2: break
+        case -2:
+            contentManager.currentDisplay = "Good luck with your storing and managing of activities!"
+            contentManager.currentOptions = [(0,"Begin The Program",1)]
         case -1:
             if contentManager.displaySeperate.count > 1 {
                 contentManager.currentDisplay = contentManager.displaySeperate.first!
@@ -209,43 +211,44 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             contentManager.currentOptions = [(1,"Exit Menu",1)]
         case 6:
-            contentManager.currentDisplay = "View Activity Screen"
+            contentManager.selectedActivity = contentManager.savedDropdownInformation
+            contentManager.currentDisplay = "View Activity Screen -> Set text here"
             contentManager.currentOptions = []
         case 7:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "Select Group Screen"
             contentManager.currentOptions = []
         case 8:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "View Group Screen -> Set text here"
             contentManager.currentOptions = []
         case 9:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "Select Team Screen"
             contentManager.currentOptions = []
         case 10:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "View Team Screen -> Set text here"
             contentManager.currentOptions = []
         case 11:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "Select Player From List -> Use savedTextField stuff"
             contentManager.currentOptions = []
         case 12:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "Select New List -> Use savedTextField stuff"
             contentManager.currentOptions = []
         case 13:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "Handle Change Group -> Display Success Or Failure Messages -> Apply New Stats"
             contentManager.currentOptions = []
         case 14:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "Viewing Player -> Modify Statistics / Change Group / Change Team"
             contentManager.currentOptions = []
         case 15:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "Select New Group / Team -> Send from viewing player"
             contentManager.currentOptions = []
         case 16:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "Handle Change Group -> Display Success Or Failure Messages -> Apply New Stats"
             contentManager.currentOptions = []
         case 17:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "Create New Automatic Statistic Name"
             contentManager.currentOptions = []
         case 18:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "Declare Values and Operations Bit By Bit"
             contentManager.currentOptions = []
         case 19:
             contentManager.currentDisplay = ""
@@ -451,6 +454,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 textField.frame = CGRect(x: 10, y: yOffset, width: view.frame.width - 40, height: 40)
                 view.addSubview(textField)
                 textFields.append(textField)
+                textField.text = ""
                 yOffset += 50
             case 3:
                 // Creates dropdown menus
@@ -547,13 +551,30 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 view.addSubview(dropdown)
                 dropdowns.append(dropdown)
                 yOffset += 110
-
+                
+                // Creates buttons
+                let button = createButton(with: "Set Value", action: #selector(updateTableValue(_:)), color: .systemBlue)
+                button.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 40)
+                button.tag = identifier
+                view.addSubview(button)
+                if index < 9 && title != "" {
+                    let label = UILabel()
+                    label.textColor = .systemBlue
+                    label.layer.position.x = 370
+                    label.layer.position.y = yOffset + 10
+                    label.font = UIFont.systemFont(ofSize: 15) // Adjust font size as needed
+                    label.text = "[\(index + 1)]"
+                    index += 1
+                    label.sizeToFit() // Resize label based on content
+                    
+                    view.addSubview(label)
+                }
+                yOffset += 50
+                
                 // Text Field
                 let textField = UITextField()
                 textField.borderStyle = .roundedRect
                 textField.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 40)
-                textField.text = getSelectedValue()
-                textField.addTarget(self, action: #selector(updateTableValue(_:)), for: .editingDidEnd)
                 textFields.append(textField)
                 view.addSubview(textField)
                 yOffset += 50
@@ -709,10 +730,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         }
     }
 
-    @objc func updateTableValue(_ sender: UITextField) {
+    @objc func updateTableValue(_ sender: UIButton) {
         let index = contentManager.selectedDropdownIndex
         guard index < contentManager.tableValues.count,
-              let newText = sender.text else { return }
+              let newText = textFields[0].text else { return }
         
         // Update the value in the tuple while preserving title and type
         let (title, value) = contentManager.tableValues[index]
