@@ -157,12 +157,14 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentOptions = [(1,"View Activities",1),(0,"Modify System Settings",1),(0,"Log Out",1)]
             saveGameData()
         case 1:
+            contentManager.savedTextfieldInformation = []
+            
             if user.activities.isEmpty {
                 contentManager.currentDisplay = "What would you like to do"
                 contentManager.currentOptions = [(2,"Create New Activity",1),(0,"Exit",1)]
             } else {
                 contentManager.currentDisplay = "Please select the activity that you want to view using the dropdown menu. Or press 'Create New Activity' to create a new activity."
-                contentManager.currentOptions = [(0,"Activity",7),(6,"View Activity",1),(2,"Create New Activity",1)]
+                contentManager.currentOptions = [(0,"Activity",7),(7,"View Activity",1),(2,"Create New Activity",1)]
                 contentManager.tableValues = []
                 contentManager.storedDropdowns = []
                 for activity in user.activities {
@@ -198,60 +200,68 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
         case 4:
             contentManager.currentDisplay = "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use."
-            contentManager.currentOptions = [(0,"Statistic",6),(5,"Finalise Activity",1),(1,"Exit Menu",1)]
+            contentManager.currentOptions = [(0,"Statistic",6),(5,"Finalise Statistics",1),(1,"Exit Menu",1)]
         case 5:
-            contentManager.currentDisplay = "Congratulations, you have successfully created the activity \(contentManager.savedTextfieldInformation[0]). This activity has \(contentManager.tableValues.count) statistics being tracked!"
+            contentManager.currentDisplay = "This activity can be further customised. You have three choices for what type of activity you want it to be:\n\nOption 1 - The activity will have both groups and teams, meaning you can split up players two seperate times, such as age group and then by division.\n\nOption 2 - The activity will have teams, meaning you can split players up based on just one category like division or age group.\n\nOption 3 - The activity won't have groups or teams, instead just stores all the players together.\n\nWhich method would you like to use?\n"
+            contentManager.currentOptions = [(6,"Option 1",1),(6,"Option 2",1),(6,"Option 3",1),(1,"Exit Menu",1)]
+        case 6:
+            contentManager.currentDisplay = "Congratulations, you have successfully created the activity \(contentManager.savedTextfieldInformation[0]). This activity has \(contentManager.tableValues.count) statistics being tracked, and uses player storage Option \(sender.titleLabel!.text!.last!)"
             // Create Activity Here
-            var newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], people: [:], groups: [:], teams: [:], combined: StatisticHolder(statistics: []), overallStatistics: [])
+            var newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], storageType: 0, people: [:], groups: [:], teams: [:], combined: StatisticHolder(statistics: []), overallStatistics: [])
             for (title,value) in contentManager.tableValues {
                 newActivity.overallStatistics.append(Statistic(name: title, value: Int(value) ?? 0, rule: []))
             }
+            
+            newActivity.storageType = Int(String(sender.titleLabel!.text!.last!))!
+            
             user.activities.append(newActivity)
             saveGameData()
             
             contentManager.currentOptions = [(1,"Exit Menu",1)]
-        case 6:
-            contentManager.selectedActivity = contentManager.savedDropdownInformation
-            contentManager.currentDisplay = "View Activity Screen -> Set text here"
-            contentManager.currentOptions = []
         case 7:
-            contentManager.currentDisplay = "Select Group Screen"
+            contentManager.selectedActivity = contentManager.savedDropdownInformation
+            let useActivity: Activity = user.activities[contentManager.selectedActivity]
+            contentManager.currentDisplay = "Activity: \(useActivity.name)\n\nStatistics:"
+            for statistic in useActivity.overallStatistics {
+                contentManager.currentDisplay += " \(statistic.name),"
+            }
+            contentManager.currentDisplay.removeLast()
             contentManager.currentOptions = []
         case 8:
-            contentManager.currentDisplay = "View Group Screen -> Set text here"
+            contentManager.currentDisplay = "Select Group Screen"
             contentManager.currentOptions = []
         case 9:
-            contentManager.currentDisplay = "Select Team Screen"
+            contentManager.currentDisplay = "View Group Screen -> Set text here"
             contentManager.currentOptions = []
         case 10:
-            contentManager.currentDisplay = "View Team Screen -> Set text here"
+            contentManager.currentDisplay = "Select Team Screen"
             contentManager.currentOptions = []
         case 11:
-            contentManager.currentDisplay = "Select Player From List -> Use savedTextField stuff"
+            contentManager.currentDisplay = "View Team Screen -> Set text here"
             contentManager.currentOptions = []
         case 12:
-            contentManager.currentDisplay = "Select New List -> Use savedTextField stuff"
+            contentManager.currentDisplay = "Select Player From List -> Use savedTextField stuff"
             contentManager.currentOptions = []
         case 13:
-            contentManager.currentDisplay = "Handle Change Group -> Display Success Or Failure Messages -> Apply New Stats"
+            contentManager.currentDisplay = "Select New List -> Use savedTextField stuff"
             contentManager.currentOptions = []
         case 14:
-            contentManager.currentDisplay = "Viewing Player -> Modify Statistics / Change Group / Change Team"
-            contentManager.currentOptions = []
-        case 15:
-            contentManager.currentDisplay = "Select New Group / Team -> Send from viewing player"
-            contentManager.currentOptions = []
-        case 16:
             contentManager.currentDisplay = "Handle Change Group -> Display Success Or Failure Messages -> Apply New Stats"
             contentManager.currentOptions = []
+        case 15:
+            contentManager.currentDisplay = "Viewing Player -> Modify Statistics / Change Group / Change Team"
+            contentManager.currentOptions = []
+        case 16:
+            contentManager.currentDisplay = "Select New Group / Team -> Send from viewing player"
+            contentManager.currentOptions = []
         case 17:
-            contentManager.currentDisplay = "Create New Automatic Statistic Name"
+            contentManager.currentDisplay = "Handle Change Group -> Display Success Or Failure Messages -> Apply New Stats"
             contentManager.currentOptions = []
         case 18:
-            contentManager.currentDisplay = "Declare Values and Operations Bit By Bit"
+            contentManager.currentDisplay = "Create New Automatic Statistic Name"
             contentManager.currentOptions = []
         case 19:
-            contentManager.currentDisplay = ""
+            contentManager.currentDisplay = "Declare Values and Operations Bit By Bit"
             contentManager.currentOptions = []
         case 20:
             contentManager.currentDisplay = ""
@@ -533,7 +543,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 tableView.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 150)
                 tableView.tag = 999  // arbitrary tag to find later
                 view.addSubview(tableView)
-                yOffset += 160
+                yOffset += 240
                 
                 // Picker label
                 let label = UILabel()
@@ -551,25 +561,6 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 view.addSubview(dropdown)
                 dropdowns.append(dropdown)
                 yOffset += 110
-                
-                // Creates buttons
-                let button = createButton(with: "Set Value", action: #selector(updateTableValue(_:)), color: .systemBlue)
-                button.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 40)
-                button.tag = identifier
-                view.addSubview(button)
-                if index < 9 && title != "" {
-                    let label = UILabel()
-                    label.textColor = .systemBlue
-                    label.layer.position.x = 370
-                    label.layer.position.y = yOffset + 10
-                    label.font = UIFont.systemFont(ofSize: 15) // Adjust font size as needed
-                    label.text = "[\(index + 1)]"
-                    index += 1
-                    label.sizeToFit() // Resize label based on content
-                    
-                    view.addSubview(label)
-                }
-                yOffset += 50
                 
                 // Text Field
                 let textField = UITextField()
@@ -712,6 +703,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     // MARK: - TextField Updates
 
     func updateTextFieldWithSelectedValue() {
+        print("updateTextFieldWithSelectedValue()")
         let index = contentManager.selectedDropdownIndex
         guard index < contentManager.tableValues.count else { return }
         
@@ -730,7 +722,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         }
     }
 
-    @objc func updateTableValue(_ sender: UIButton) {
+    @objc func updateTableValue(_ sender: UITextField) {
+        print("updateTableValue()")
         let index = contentManager.selectedDropdownIndex
         guard index < contentManager.tableValues.count,
               let newText = textFields[0].text else { return }
@@ -738,11 +731,17 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         // Update the value in the tuple while preserving title and type
         let (title, value) = contentManager.tableValues[index]
         
-        if contentManager.currentDisplay == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." {
+        let label = view.subviews[0] as! UILabel
+        
+        if label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." {
             if let integerCheck: Float = Float(newText) {
                 contentManager.tableValues[index] = (title, newText)
             } else {
-                // Don't Accept Input
+                var newText: String = textFields[0].text!
+                if newText != "" {
+                    newText.removeLast()
+                    textFields[0].text = newText
+                }
             }
         } else {
             contentManager.tableValues[index] = (title, newText)
@@ -756,6 +755,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     }
     
     @objc func addTableValues(_ sender: UIButton) {
+        print("addTableValues()")
         let text = view.subviews[2] as! UITextField
         let table = view.subviews[1] as! UITableView
         if text.text! != "" {
@@ -771,6 +771,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     }
     
     @objc func removeTableValues(_ sender: UIButton) {
+        print("removeTableValues()")
         if contentManager.tableValues.count >= 1 {
             let table = view.subviews[1] as! UITableView
             contentManager.tableValues.removeLast()

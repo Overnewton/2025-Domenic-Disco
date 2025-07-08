@@ -18,6 +18,7 @@ struct UserDetails: Codable {
 
 struct Activity: Codable {
     var name: String
+    var storageType: Int
     var people: [String : Person]
     var groups: [Int : String]
     var teams: [Int : String]
