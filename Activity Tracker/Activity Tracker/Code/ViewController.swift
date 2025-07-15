@@ -221,27 +221,36 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 7:
             contentManager.selectedActivity = contentManager.savedDropdownInformation
             let useActivity: Activity = user.activities[contentManager.selectedActivity]
-            contentManager.currentDisplay = "Activity: \(useActivity.name)\n\nStatistics:"
-            for statistic in useActivity.overallStatistics {
-                contentManager.currentDisplay += " \(statistic.name),"
-            }
+            contentManager.currentDisplay = "You are currently viewing \(useActivity.name), an activity that is tracking \(useActivity.overallStatistics.count) statistics for a total of \(useActivity.people.count) people"
             contentManager.currentDisplay.removeLast()
-            contentManager.currentOptions = []
+            switch useActivity.storageType {
+            case 1: contentManager.currentOptions = [(12,"View All Players",1), (8,"View Groups",1), (10,"View Teams",1), (1,"Exit Menu",1)]
+            case 2: contentManager.currentOptions = [(12,"View All Players",1), (10,"View Teams",1), (1,"Exit Menu",1)]
+            case 3: contentManager.currentOptions = [(12,"View All Players",1), (1,"Exit Menu",1)]
+            default: break
+            }
         case 8:
             contentManager.currentDisplay = "Select Group Screen"
-            contentManager.currentOptions = []
+            contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 9:
             contentManager.currentDisplay = "View Group Screen -> Set text here"
-            contentManager.currentOptions = []
+            contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 10:
             contentManager.currentDisplay = "Select Team Screen"
-            contentManager.currentOptions = []
+            contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 11:
             contentManager.currentDisplay = "View Team Screen -> Set text here"
-            contentManager.currentOptions = []
+            contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 12:
-            contentManager.currentDisplay = "Select Player From List -> Use savedTextField stuff"
-            contentManager.currentOptions = []
+            contentManager.currentDisplay = "Select Player From List"
+            switch sender.titleLabel!.text {
+            case "View All Players": break
+            case "View Players For Group": break
+            case "View Players For Team": break
+            default: break
+            }
+            
+            contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 13:
             contentManager.currentDisplay = "Select New List -> Use savedTextField stuff"
             contentManager.currentOptions = []
