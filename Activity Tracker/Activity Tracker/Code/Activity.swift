@@ -19,9 +19,9 @@ struct UserDetails: Codable {
 struct Activity: Codable {
     var name: String
     var storageType: Int
-    var people: [String : Person]
-    var groups: [Int : String]
-    var teams: [Int : String]
+    var people: [Person]
+    var groups: [Group]
+    var teams: [Team]
     var combined: StatisticHolder
     
     // Array of just the statistics with no values associated
@@ -31,7 +31,7 @@ struct Activity: Codable {
     func addUser() -> StatisticHolder {
         var newPerson: StatisticHolder = StatisticHolder(statistics: [])
         for statistic in overallStatistics {
-            newPerson.statistics.append(Statistic(name: "", value: 0, rule: []))
+            newPerson.statistics.append(statistic)
         }
         return newPerson
     }
@@ -41,10 +41,32 @@ struct Activity: Codable {
         var newStatistic: Statistic = Statistic(name: name, value: value, rule: rule)
         overallStatistics.append(newStatistic)
         
-        for (index,(key, value)) in people.enumerated() {
-            people[key]!.currentStatistics.statistics.append(newStatistic)
+        for (index,person) in people.enumerated() {
+            people[index].currentStatistics.statistics.append(newStatistic)
         }
     }
+}
+
+// Used to hold groups of people within an activity
+// Can hold further teams within the group
+struct Group: Codable {
+    var name: String // Group name
+    var people: [FixedStorage] // Fixed storage
+    var teams: [FixedStorage]
+}
+
+// Used to hold teams of people within an activity
+// Cannot hold further groups within the team
+struct Team: Codable {
+    var name: String // Team name
+    var people: [FixedStorage] // Fixed storage
+}
+
+// This is a fixed storage struct, used to ensure no data irregularities exist
+// This records an index within an array, and it's name, so that if for some reason they shift up or down 1 slot in the array, I have this kinda 2 step process where I confirm that both the index and the names match
+struct FixedStorage: Codable {
+    var index: Int
+    var name: String
 }
 
 class Person: Codable {
@@ -54,8 +76,9 @@ class Person: Codable {
 }
 
 struct PersonDetails: Codable {
-    var group: Int
-    var team: Int
+    var name: String
+    var group: FixedStorage
+    var team: FixedStorage
 }
 
 struct StatisticHolder: Codable {

@@ -207,7 +207,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 6:
             contentManager.currentDisplay = "Congratulations, you have successfully created the activity \(contentManager.savedTextfieldInformation[0]). This activity has \(contentManager.tableValues.count) statistics being tracked, and uses player storage Option \(sender.titleLabel!.text!.last!)"
             // Create Activity Here
-            var newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], storageType: 0, people: [:], groups: [:], teams: [:], combined: StatisticHolder(statistics: []), overallStatistics: [])
+            var newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], storageType: 0, people: [], groups: [], teams: [], combined: StatisticHolder(statistics: []), overallStatistics: [])
             for (title,value) in contentManager.tableValues {
                 newActivity.overallStatistics.append(Statistic(name: title, value: Int(value) ?? 0, rule: []))
             }
@@ -222,16 +222,21 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.selectedActivity = contentManager.savedDropdownInformation
             let useActivity: Activity = user.activities[contentManager.selectedActivity]
             contentManager.currentDisplay = "You are currently viewing \(useActivity.name), an activity that is tracking \(useActivity.overallStatistics.count) statistics for a total of \(useActivity.people.count) people"
-            contentManager.currentDisplay.removeLast()
             switch useActivity.storageType {
-            case 1: contentManager.currentOptions = [(12,"View All Players",1), (8,"View Groups",1), (10,"View Teams",1), (1,"Exit Menu",1)]
-            case 2: contentManager.currentOptions = [(12,"View All Players",1), (10,"View Teams",1), (1,"Exit Menu",1)]
-            case 3: contentManager.currentOptions = [(12,"View All Players",1), (1,"Exit Menu",1)]
+            case 1: contentManager.currentOptions = [(21,"View Activity Details",1), (12,"View All Players",1), (8,"View Groups",1), (10,"View Teams",1), (1,"Exit Menu",1)]
+            case 2: contentManager.currentOptions = [(21,"View Activity Details",1), (12,"View All Players",1), (10,"View Teams",1), (1,"Exit Menu",1)]
+            case 3: contentManager.currentOptions = [(21,"View Activity Details",1), (12,"View All Players",1), (1,"Exit Menu",1)]
             default: break
             }
         case 8:
-            contentManager.currentDisplay = "Select Group Screen"
-            contentManager.currentOptions = [(7,"Exit Menu",1)]
+            contentManager.currentDisplay = "Please select the group that you want to view using the dropdown menu. Or press 'Create New Group' to create a new group."
+            contentManager.currentOptions = [(0,"Group",7),(9,"View Group",1),(2,"Create New Group",1),(7,"Exit Menu",1)]
+            contentManager.tableValues = []
+            contentManager.storedDropdowns = []
+            for group in user.activities[contentManager.selectedActivity].groups {
+                contentManager.tableValues.append((group.name,""))
+                contentManager.storedDropdowns.append(group.name)
+            }
         case 9:
             contentManager.currentDisplay = "View Group Screen -> Set text here"
             contentManager.currentOptions = [(7,"Exit Menu",1)]
@@ -249,7 +254,6 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             case "View Players For Team": break
             default: break
             }
-            
             contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 13:
             contentManager.currentDisplay = "Select New List -> Use savedTextField stuff"
@@ -275,7 +279,14 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 20:
             contentManager.currentDisplay = ""
             contentManager.currentOptions = []
-        case 21: break
+        case 21:
+            let activity = user.activities[contentManager.selectedActivity]
+            contentManager.currentDisplay = "Activity: \(activity.name)"
+            contentManager.currentOptions = [(0,"Statistics",9),(7,"Exit Menu",1)]
+            contentManager.tableValues = []
+            for statistic in activity.overallStatistics {
+                contentManager.tableValues.append((title: statistic.name,value: String(statistic.value)))
+            }
         case 22: break
         case 23: break
         case 24: break
@@ -666,6 +677,23 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     view.addSubview(label)
                 }
                 yOffset += 50
+            case 9:
+                yOffset += 30
+                // Label
+                let label = UILabel()
+                label.text = "     \(title):"
+                label.frame = CGRect(x: 10, y: yOffset, width: view.frame.width - 40, height: 20)
+                view.addSubview(label)
+                yOffset += 30
+                
+                // Table View
+                let tableView = UITableView()
+                tableView.delegate = self
+                tableView.dataSource = self
+                tableView.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 150)
+                tableView.tag = 999  // arbitrary tag to find later
+                view.addSubview(tableView)
+                yOffset += 240
             default:
                 break
             }
