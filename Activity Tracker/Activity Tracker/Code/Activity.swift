@@ -49,17 +49,19 @@ struct Activity: Codable {
 
 // Used to hold groups of people within an activity
 // Can hold further teams within the group
-struct Group: Codable {
+class Group: Codable {
     var name: String // Group name
-    var people: [FixedStorage] // Fixed storage
-    var teams: [FixedStorage]
+    var people: [Person] // The people in the group
+    var teams: [Team] // The teams within the group
+    var uniqueID: Int
 }
 
 // Used to hold teams of people within an activity
 // Cannot hold further groups within the team
-struct Team: Codable {
+class Team: Codable {
     var name: String // Team name
-    var people: [FixedStorage] // Fixed storage
+    var people: [Person] // The people in the team
+    var uniqueID: Int
 }
 
 // This is a fixed storage struct, used to ensure no data irregularities exist
@@ -67,6 +69,7 @@ struct Team: Codable {
 struct FixedStorage: Codable {
     var index: Int
     var name: String
+    var id: Int
 }
 
 class Person: Codable {
@@ -77,6 +80,7 @@ class Person: Codable {
 
 struct PersonDetails: Codable {
     var name: String
+    var uniqueID: Int
     var group: FixedStorage
     var team: FixedStorage
 }
