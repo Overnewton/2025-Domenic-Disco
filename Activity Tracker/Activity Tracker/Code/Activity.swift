@@ -1,10 +1,11 @@
 import Foundation
 
-var user: User = User(activities: [], details: UserDetails(username: "", password: ""))
+var user: User = User(activities: [], details: UserDetails(username: "", password: ""), playerCount: 0)
 
 struct User: Codable {
     var activities: [Activity]
     var details: UserDetails
+    var playerCount: Int
     
     func quickPrint() -> String {
         return "\(details.username) - Activities: \(activities.count)"
@@ -16,7 +17,7 @@ struct UserDetails: Codable {
     var password: String
 }
 
-struct Activity: Codable {
+class Activity: Codable {
     var name: String
     var storageType: Int
     var people: [Person]
@@ -37,13 +38,23 @@ struct Activity: Codable {
     }
     
     // Function to assign a new statistic to the activity
-    mutating func addStatistic(name: String, value: Int, rule: [Calculation]) {
-        var newStatistic: Statistic = Statistic(name: name, value: value, rule: rule)
+    func addStatistic(name: String, value: Int, rule: [Calculation]) {
+        let newStatistic: Statistic = Statistic(name: name, value: value, rule: rule)
         overallStatistics.append(newStatistic)
         
         for (index,person) in people.enumerated() {
             people[index].currentStatistics.statistics.append(newStatistic)
         }
+    }
+    
+    init(name: String, storageType: Int, people: [Person], groups: [Group], teams: [Team], combined: StatisticHolder, overallStatistics: [Statistic]) {
+        self.name = name
+        self.storageType = storageType
+        self.people = people
+        self.groups = groups
+        self.teams = teams
+        self.combined = combined
+        self.overallStatistics = overallStatistics
     }
 }
 
@@ -54,6 +65,13 @@ class Group: Codable {
     var people: [Person] // The people in the group
     var teams: [Team] // The teams within the group
     var uniqueID: Int
+    
+    init(name: String, people: [Person], teams: [Team], uniqueID: Int) {
+        self.name = name
+        self.people = people
+        self.teams = teams
+        self.uniqueID = uniqueID
+    }
 }
 
 // Used to hold teams of people within an activity
@@ -62,6 +80,12 @@ class Team: Codable {
     var name: String // Team name
     var people: [Person] // The people in the team
     var uniqueID: Int
+    
+    init(name: String, people: [Person], uniqueID: Int) {
+        self.name = name
+        self.people = people
+        self.uniqueID = uniqueID
+    }
 }
 
 // This is a fixed storage struct, used to ensure no data irregularities exist
@@ -76,6 +100,12 @@ class Person: Codable {
     var details: PersonDetails
     var currentStatistics: StatisticHolder
     var pastPeriods: [Int : StatisticHolder]
+    
+    init(details: PersonDetails, currentStatistics: StatisticHolder, pastPeriods: [Int : StatisticHolder]) {
+        self.details = details
+        self.currentStatistics = currentStatistics
+        self.pastPeriods = pastPeriods
+    }
 }
 
 struct PersonDetails: Codable {

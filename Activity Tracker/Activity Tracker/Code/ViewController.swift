@@ -32,7 +32,7 @@ struct StoredActivity {
     var player: Int
 }
 
-var contentManager: ContentManager = ContentManager(currentOptions: [(-20, "Begin Program", 1)], currentDisplay: "", savedTextfieldInformation: [], savedInteger: 0, savedDropdownInformation: 0, displaySeperate: [], repeatedString: "", returnPoint: 0, exitString: "", storedDropdowns: [], savedText: [], selectedValues: StoredActivity(activity: 0, team: 0, group: 0, player: 0), tableValues: [], selectedDropdownIndex: 0, selectedRow: 0)
+var contentManager: ContentManager = ContentManager(currentOptions: [(-20, "Begin Program", 1)], currentDisplay: "", savedTextfieldInformation: [], savedInteger: 0, savedDropdownInformation: 0, displaySeperate: [], repeatedString: "", returnPoint: 0, exitString: "", storedDropdowns: [], savedText: [], selectedValues: StoredActivity(activity: -1, team: -1, group: -1, player: -1), tableValues: [], selectedDropdownIndex: 0, selectedRow: 0)
 
 class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource {
     var textFields: [UITextField] = []
@@ -231,6 +231,11 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             contentManager.currentOptions = [(1,"Exit Menu",1)]
         case 7:
+            // Reset the group, team and player values to avoid later issues
+            contentManager.selectedValues.group = -1
+            contentManager.selectedValues.team = -1
+            contentManager.selectedValues.player = -1
+            
             contentManager.selectedValues.activity = contentManager.savedDropdownInformation
             let useActivity: Activity = user.activities[contentManager.selectedValues.activity]
             contentManager.currentDisplay = "You are currently viewing \(useActivity.name), an activity that is tracking \(useActivity.overallStatistics.count) statistics for a total of \(useActivity.people.count) people"
@@ -262,15 +267,15 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             var displayPeople: [Person] = []
             switch sender.titleLabel!.text {
                 
-            // If this is to view all players then display all players
+                // If this is to view all players then display all players
             case "View All Players":
                 displayPeople = user.activities[contentManager.selectedValues.activity].people
                 
-            // If this is to view players for a group then display players for the selected group
+                // If this is to view players for a group then display players for the selected group
             case "View Players For Group":
                 displayPeople = user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].people
                 
-            // If this is to view players for a team then display players for the selected team
+                // If this is to view players for a team then display players for the selected team
             case "View Players For Team":
                 displayPeople = user.activities[contentManager.selectedValues.activity].teams[contentManager.selectedValues.team].people
             default: break
@@ -281,7 +286,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.currentOptions = [(13,"Add New Player",1),(0,"Exit",1)]
             } else {
                 contentManager.currentDisplay = "Please select the player that you want to view using the dropdown menu. Or press 'Add New Player' to input a new player."
-                contentManager.currentOptions = [(0,"Player",7), (20,"View Player",1), (13,"Add New Player",1)]
+                contentManager.currentOptions = [(0,"Player",7), (22,"View Player",1), (13,"Add New Player",1)]
                 
                 contentManager.tableValues = []
                 contentManager.storedDropdowns = []
@@ -293,7 +298,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
         case 13:
             contentManager.currentDisplay = "What would you like this player to be named?"
-            contentManager.currentOptions = [(0,"Name",2),(7,"Exit Menu",1)]
+            contentManager.currentOptions = [(0,"Name",2),(14,"Submit Name",1),(7,"Exit Menu",1)]
             clearTextFieldData()
         case 14:
             if contentManager.savedTextfieldInformation[0] == "" {
@@ -310,18 +315,42 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     contentManager.currentDisplay = "Unfortunately, you cannot give a player a name that's already been used. Please give it a different name"
                     contentManager.currentOptions = [(13,"Exit",1)]
                 } else {
-                    contentManager.currentDisplay = "Do you have statistics for this player already?"
+                    contentManager.currentDisplay = "Do you have statistics to input for this player already?"
                     
                     contentManager.currentOptions = [(17,"Yes",1),(15,"No",1)]
                     contentManager.tableValues = [("Placeholder","")]
                 }
             }
         case 15:
-            contentManager.currentDisplay = "The new player, \(contentManager.savedTextfieldInformation[0]), will be assigned the basic statistic values for the activity.\n\nIf you are certain about inputting this player to your activity, please press 'Input Player', otherwise please press 'Exit Menu'"
+            contentManager.currentDisplay = "If you are certain about inputting this player to your activity, please press 'Input Player', otherwise please press 'Exit Menu'"
             contentManager.currentOptions = [(16,"Input Player",1), (7,"Exit Menu",1)]
         case 16:
             contentManager.currentDisplay = "The new player, \(contentManager.savedTextfieldInformation[0]), has successfully been created!"
-            contentManager.currentOptions = [(15,"Exit Menu",1)]
+            
+            let newPlayer: Person = Person(details: PersonDetails(name: contentManager.savedTextfieldInformation[0], uniqueID: user.playerCount, group: FixedStorage(index: -1, name: "", id: -1), team: FixedStorage(index: -1, name: "", id: -1)), currentStatistics: StatisticHolder(statistics: []), pastPeriods: [:])
+            user.playerCount += 1
+            
+            user.activities[contentManager.selectedValues.activity].people.append(newPlayer)
+            
+            if contentManager.selectedValues.group != -1 && contentManager.selectedValues.team != -1 {
+                let group = user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group]
+                group.people.append(newPlayer)
+                
+                let team = group.teams[contentManager.selectedValues.team]
+                team.people.append(newPlayer)
+                
+            } else if contentManager.selectedValues.group != -1 {
+                let group = user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group]
+                group.people.append(newPlayer)
+                
+            } else if contentManager.selectedValues.team != -1 {
+                let team = user.activities[contentManager.selectedValues.activity].teams[contentManager.selectedValues.team]
+                team.people.append(newPlayer)
+            }
+            
+            print(newPlayer)
+            
+            contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 17:
             contentManager.currentDisplay = "Please enter the statistics for player \(contentManager.savedTextfieldInformation[0]) using the text field."
             contentManager.currentOptions = []
