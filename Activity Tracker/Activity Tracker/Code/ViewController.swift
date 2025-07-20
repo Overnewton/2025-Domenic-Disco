@@ -252,37 +252,42 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 8:
             contentManager.selectedValues.team = -1
             contentManager.selectedValues.player = -1
-            if user.activities[contentManager.selectedValues.activity].groups.isEmpty {
-                contentManager.currentDisplay = "You currently don't have any activites, to create a new activity press 'Create New Activity'"
-                contentManager.currentOptions = [(2,"Create New Activity",1),(0,"Exit",1)]
+            let activity = user.activities[contentManager.selectedValues.activity]
+            if activity.groups.isEmpty {
+                contentManager.currentDisplay = "You currently don't have any groups, to create a new group press 'Create New Group'"
+                contentManager.currentOptions = [(23,"Create New Group",1),(7,"Exit",1)]
             } else {
                 contentManager.currentDisplay = "Please select the group that you want to view using the dropdown menu. Or press 'Create New Group' to create a new group."
                 contentManager.currentOptions = [(0,"Group",7),(9,"View Group",1),(2,"Create New Group",1),(7,"Exit Menu",1)]
                 contentManager.tableValues = []
                 contentManager.storedDropdowns = []
-                for group in user.activities[contentManager.selectedValues.activity].groups {
+                for group in activity.groups {
                     contentManager.tableValues.append((group.name,""))
                     contentManager.storedDropdowns.append(group.name)
                 }
             }
         case 9:
+            contentManager.selectedValues.group = contentManager.savedDropdownInformation
+            
             saveGameData()
             contentManager.currentDisplay = "View Group Screen -> Set text here"
             contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 10:
             var noTeams: Bool = false
-            if user.activities[contentManager.selectedValues.activity].storageType == 1 {
+            let activity = user.activities[contentManager.selectedValues.activity]
+            if activity.storageType == 1 {
                 if contentManager.selectedValues.group == -1 {
-                    if user.activities[contentManager.selectedValues.activity].teams.isEmpty {
+                    if activity.teams.isEmpty {
                         noTeams = true
                     }
                 } else {
-                    if user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].teams.isEmpty {
+                    let group = activity.groups[contentManager.selectedValues.group]
+                    if group.teams.isEmpty {
                         noTeams = true
                     }
                 }
             } else {
-                if user.activities[contentManager.selectedValues.activity].teams.isEmpty {
+                if activity.teams.isEmpty {
                     noTeams = true
                 }
             }
@@ -296,7 +301,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
         case 11:
             saveGameData()
-            contentManager.currentDisplay = "View Team Screen -> Set text here"
+            contentManager.selectedValues.team = contentManager.savedDropdownInformation
+            contentManager.currentDisplay = "View Team Screen"
             contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 12:
             var displayPeople: [Person] = []
@@ -353,7 +359,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.currentOptions = [(13,"Exit",1)]
             } else {
                 var dupeName: Bool = false
-                for player in user.activities[contentManager.selectedValues.activity].people {
+                let activity = user.activities[contentManager.selectedValues.activity]
+                for player in activity.people {
                     if player.details.name == contentManager.savedTextfieldInformation[0] {
                         dupeName = true
                     }
@@ -405,19 +412,22 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentOptions = [(0,"Statistic",6),(18,"Finalise Statistics",1)]
             
             contentManager.tableValues = []
-            for statistic in user.activities[contentManager.selectedValues.activity].overallStatistics {
+            let activity = user.activities[contentManager.selectedValues.activity]
+            for statistic in activity.overallStatistics {
                 contentManager.tableValues.append((title: statistic.name, value: String(statistic.value)))
             }
             
         case 18:
             contentManager.currentDisplay = "The new player, \(contentManager.savedTextfieldInformation[0]), has successfully been created!"
+            let activity = user.activities[contentManager.selectedValues.activity]
             
             let newPlayer: Person = Person(details: PersonDetails(name: contentManager.savedTextfieldInformation[0], uniqueID: user.playerCount, group: FixedStorage(index: -1, name: "", id: -1), team: FixedStorage(index: -1, name: "", id: -1)), currentStatistics: StatisticHolder(description: "Current", statistics: []), pastPeriods: [:])
             user.playerCount += 1
             
             // Add stats here
             for (index,(title,value)) in contentManager.tableValues.enumerated() {
-                var statistic: Statistic = user.activities[contentManager.selectedValues.activity].overallStatistics[index]
+                
+                var statistic: Statistic = activity.overallStatistics[index]
                 if value != "" {
                     statistic.value = Float(value)!
                 }
@@ -429,21 +439,21 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             newPlayer.pastPeriods[0]?.description = "Starting Stats"
             
             // Add stats here
-            user.activities[contentManager.selectedValues.activity].people.append(newPlayer)
+            activity.people.append(newPlayer)
             
             if contentManager.selectedValues.group != -1 && contentManager.selectedValues.team != -1 {
-                let group = user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group]
+                let group = activity.groups[contentManager.selectedValues.group]
                 group.people.append(newPlayer)
                 
                 let team = group.teams[contentManager.selectedValues.team]
                 team.people.append(newPlayer)
                 
             } else if contentManager.selectedValues.group != -1 {
-                let group = user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group]
+                let group = activity.groups[contentManager.selectedValues.group]
                 group.people.append(newPlayer)
                 
             } else if contentManager.selectedValues.team != -1 {
-                let team = user.activities[contentManager.selectedValues.activity].teams[contentManager.selectedValues.team]
+                let team = activity.teams[contentManager.selectedValues.team]
                 team.people.append(newPlayer)
             }
             
@@ -462,7 +472,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             for statistic in activity.overallStatistics {
                 contentManager.tableValues.append((title: statistic.name,value: String(statistic.value)))
             }
-        case 22: break
+        case 22:
+            let activity = user.activities[contentManager.selectedValues.activity]
+            
+            contentManager.currentDisplay = "View Player"
+            contentManager.currentOptions = [(7,"Exit Menu",1)]
+
+            Person(details: PersonDetails(name: contentManager.savedTextfieldInformation[0], uniqueID: user.playerCount, group: FixedStorage(index: -1, name: "", id: -1), team: FixedStorage(index: -1, name: "", id: -1)), currentStatistics: StatisticHolder(description: "Current", statistics: []), pastPeriods: [:])
         case 23: break
         case 24: break
         case 25: break
