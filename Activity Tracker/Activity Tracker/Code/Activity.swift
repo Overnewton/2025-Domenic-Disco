@@ -28,17 +28,8 @@ class Activity: Codable {
     // Array of just the statistics with no values associated
     var overallStatistics: [Statistic]
     
-    // Function to add a new person into the activity
-    func addUser() -> StatisticHolder {
-        var newPerson: StatisticHolder = StatisticHolder(statistics: [])
-        for statistic in overallStatistics {
-            newPerson.statistics.append(statistic)
-        }
-        return newPerson
-    }
-    
     // Function to assign a new statistic to the activity
-    func addStatistic(name: String, value: Int, rule: [Calculation]) {
+    func addStatistic(name: String, value: Float, rule: [Calculation]) {
         let newStatistic: Statistic = Statistic(name: name, value: value, rule: rule)
         overallStatistics.append(newStatistic)
         
@@ -116,12 +107,13 @@ struct PersonDetails: Codable {
 }
 
 struct StatisticHolder: Codable {
+    var description: String
     var statistics: [Statistic]
 }
 
 struct Statistic: Codable {
     var name: String
-    var value: Int
+    var value: Float
     var rule: [Calculation]
 }
 

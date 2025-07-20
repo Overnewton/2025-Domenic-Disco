@@ -212,16 +212,19 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
         case 4:
             contentManager.currentDisplay = "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use."
-            contentManager.currentOptions = [(0,"Statistic",6),(5,"Finalise Statistics",1),(1,"Exit Menu",1)]
+            contentManager.currentOptions = [(0,"Statistic",6), (5,"Finalise Statistics",1), (1,"Exit Menu",1)]
+            for (index,_) in contentManager.tableValues.enumerated() {
+                contentManager.tableValues[index].value = "0"
+            }
         case 5:
             contentManager.currentDisplay = "This activity can be further customised. You have three choices for what type of activity you want it to be:\n\nOption 1 - The activity will have both groups and teams, meaning you can split up players two seperate times, such as age group and then by division.\n\nOption 2 - The activity will have teams, meaning you can split players up based on just one category like division or age group.\n\nOption 3 - The activity won't have groups or teams, instead just stores all the players together.\n\nWhich method would you like to use?\n"
             contentManager.currentOptions = [(6,"Option 1",1),(6,"Option 2",1),(6,"Option 3",1),(1,"Exit Menu",1)]
         case 6:
             contentManager.currentDisplay = "Congratulations, you have successfully created the activity \(contentManager.savedTextfieldInformation[0]). This activity has \(contentManager.tableValues.count) statistics being tracked, and uses player storage Option \(sender.titleLabel!.text!.last!)"
             // Create Activity Here
-            var newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], storageType: 0, people: [], groups: [], teams: [], combined: StatisticHolder(statistics: []), overallStatistics: [])
+            var newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], storageType: 0, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall Statistics", statistics: []), overallStatistics: [])
             for (title,value) in contentManager.tableValues {
-                newActivity.overallStatistics.append(Statistic(name: title, value: Int(value) ?? 0, rule: []))
+                newActivity.overallStatistics.append(Statistic(name: title, value: (Float(value) ?? 0), rule: []))
             }
             
             newActivity.storageType = Int(String(sender.titleLabel!.text!.last!))!
@@ -232,6 +235,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentOptions = [(1,"Exit Menu",1)]
         case 7:
             // Reset the group, team and player values to avoid later issues
+            saveGameData()
             contentManager.selectedValues.group = -1
             contentManager.selectedValues.team = -1
             contentManager.selectedValues.player = -1
@@ -246,21 +250,52 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             default: break
             }
         case 8:
-            contentManager.currentDisplay = "Please select the group that you want to view using the dropdown menu. Or press 'Create New Group' to create a new group."
-            contentManager.currentOptions = [(0,"Group",7),(9,"View Group",1),(2,"Create New Group",1),(7,"Exit Menu",1)]
-            contentManager.tableValues = []
-            contentManager.storedDropdowns = []
-            for group in user.activities[contentManager.selectedValues.activity].groups {
-                contentManager.tableValues.append((group.name,""))
-                contentManager.storedDropdowns.append(group.name)
+            contentManager.selectedValues.team = -1
+            contentManager.selectedValues.player = -1
+            if user.activities[contentManager.selectedValues.activity].groups.isEmpty {
+                contentManager.currentDisplay = "You currently don't have any activites, to create a new activity press 'Create New Activity'"
+                contentManager.currentOptions = [(2,"Create New Activity",1),(0,"Exit",1)]
+            } else {
+                contentManager.currentDisplay = "Please select the group that you want to view using the dropdown menu. Or press 'Create New Group' to create a new group."
+                contentManager.currentOptions = [(0,"Group",7),(9,"View Group",1),(2,"Create New Group",1),(7,"Exit Menu",1)]
+                contentManager.tableValues = []
+                contentManager.storedDropdowns = []
+                for group in user.activities[contentManager.selectedValues.activity].groups {
+                    contentManager.tableValues.append((group.name,""))
+                    contentManager.storedDropdowns.append(group.name)
+                }
             }
         case 9:
+            saveGameData()
             contentManager.currentDisplay = "View Group Screen -> Set text here"
             contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 10:
-            contentManager.currentDisplay = "Select Team Screen"
-            contentManager.currentOptions = [(7,"Exit Menu",1)]
+            var noTeams: Bool = false
+            if user.activities[contentManager.selectedValues.activity].storageType == 1 {
+                if contentManager.selectedValues.group == -1 {
+                    if user.activities[contentManager.selectedValues.activity].teams.isEmpty {
+                        noTeams = true
+                    }
+                } else {
+                    if user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].teams.isEmpty {
+                        noTeams = true
+                    }
+                }
+            } else {
+                if user.activities[contentManager.selectedValues.activity].teams.isEmpty {
+                    noTeams = true
+                }
+            }
+            
+            if noTeams {
+                contentManager.currentDisplay = "Select Team Screen"
+                contentManager.currentOptions = [(7,"Exit Menu",1)]
+            } else {
+                
+            }
+            
         case 11:
+            saveGameData()
             contentManager.currentDisplay = "View Team Screen -> Set text here"
             contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 12:
@@ -269,24 +304,36 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // If this is to view all players then display all players
             case "View All Players":
-                displayPeople = user.activities[contentManager.selectedValues.activity].people
+                let activity = user.activities[contentManager.selectedValues.activity]
+                displayPeople = activity.people
                 
                 // If this is to view players for a group then display players for the selected group
             case "View Players For Group":
-                displayPeople = user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].people
+                let activity = user.activities[contentManager.selectedValues.activity]
+                let group = activity.groups[contentManager.selectedValues.group]
+                displayPeople = group.people
                 
                 // If this is to view players for a team then display players for the selected team
             case "View Players For Team":
-                displayPeople = user.activities[contentManager.selectedValues.activity].teams[contentManager.selectedValues.team].people
+                if contentManager.selectedValues.group == -1 {
+                    let activity = user.activities[contentManager.selectedValues.activity]
+                    let team = activity.teams[contentManager.selectedValues.team]
+                    displayPeople = team.people
+                } else {
+                    let activity = user.activities[contentManager.selectedValues.activity]
+                    let group = activity.groups[contentManager.selectedValues.group]
+                    let team = group.teams[contentManager.selectedValues.team]
+                    displayPeople = team.people
+                }
             default: break
             }
             
             if displayPeople.isEmpty {
-                contentManager.currentDisplay = "Currently your activity doesn't have any players, to create a new player, press 'Add New Player'"
-                contentManager.currentOptions = [(13,"Add New Player",1),(0,"Exit",1)]
+                contentManager.currentDisplay = "Currently your selection doesn't have any players, to create a new player, press 'Add New Player'"
+                contentManager.currentOptions = [(13,"Add New Player",1),(7,"Exit",1)]
             } else {
                 contentManager.currentDisplay = "Please select the player that you want to view using the dropdown menu. Or press 'Add New Player' to input a new player."
-                contentManager.currentOptions = [(0,"Player",7), (22,"View Player",1), (13,"Add New Player",1)]
+                contentManager.currentOptions = [(0,"Player",7), (22,"View Player",1), (13,"Add New Player",1), (7,"Exit",1)]
                 
                 contentManager.tableValues = []
                 contentManager.storedDropdowns = []
@@ -315,21 +362,73 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     contentManager.currentDisplay = "Unfortunately, you cannot give a player a name that's already been used. Please give it a different name"
                     contentManager.currentOptions = [(13,"Exit",1)]
                 } else {
-                    contentManager.currentDisplay = "Do you have statistics to input for this player already?"
+                    contentManager.currentDisplay = "Your player will be able to store statistics, such as how well they performed in any given period.\n\nIf you currently have one periods worth of statistics to input for this player, please press the 'Input Statistics' button.\n\nIf you either don't have statistics for the player, or have multiple periods worth of statistics (Such as statistics from 3 seperate events), please press the 'Input Player' button and input the statistics later"
                     
-                    contentManager.currentOptions = [(17,"Yes",1),(15,"No",1)]
+                    contentManager.currentOptions = [(17,"Input Statistics",1), (15,"Input Player",1)]
                     contentManager.tableValues = [("Placeholder","")]
                 }
             }
         case 15:
-            contentManager.currentDisplay = "If you are certain about inputting this player to your activity, please press 'Input Player', otherwise please press 'Exit Menu'"
+            contentManager.currentDisplay = "If you are 100% certain about inputting this player to your activity, please press 'Input Player', otherwise please press 'Exit Menu'"
             contentManager.currentOptions = [(16,"Input Player",1), (7,"Exit Menu",1)]
         case 16:
             contentManager.currentDisplay = "The new player, \(contentManager.savedTextfieldInformation[0]), has successfully been created!"
             
-            let newPlayer: Person = Person(details: PersonDetails(name: contentManager.savedTextfieldInformation[0], uniqueID: user.playerCount, group: FixedStorage(index: -1, name: "", id: -1), team: FixedStorage(index: -1, name: "", id: -1)), currentStatistics: StatisticHolder(statistics: []), pastPeriods: [:])
+            let activity = user.activities[contentManager.selectedValues.activity]
+            let newPlayer: Person = Person(details: PersonDetails(name: contentManager.savedTextfieldInformation[0], uniqueID: user.playerCount, group: FixedStorage(index: -1, name: "", id: -1), team: FixedStorage(index: -1, name: "", id: -1)), currentStatistics: StatisticHolder(description: "Current", statistics: []), pastPeriods: [:])
             user.playerCount += 1
             
+            activity.people.append(newPlayer)
+            
+            
+            if contentManager.selectedValues.group != -1 && contentManager.selectedValues.team != -1 {
+                let group = activity.groups[contentManager.selectedValues.group]
+                group.people.append(newPlayer)
+                
+                let team = group.teams[contentManager.selectedValues.team]
+                team.people.append(newPlayer)
+                
+            } else if contentManager.selectedValues.group != -1 {
+                let group = activity.groups[contentManager.selectedValues.group]
+                group.people.append(newPlayer)
+                
+            } else if contentManager.selectedValues.team != -1 {
+                let team = activity.teams[contentManager.selectedValues.team]
+                team.people.append(newPlayer)
+            }
+            
+            saveGameData()
+            
+            contentManager.currentOptions = [(7,"Exit Menu",1)]
+        case 17:
+            contentManager.currentDisplay = "Please enter the statistics for player \(contentManager.savedTextfieldInformation[0]) using the text field."
+            contentManager.currentOptions = [(0,"Statistic",6),(18,"Finalise Statistics",1)]
+            
+            contentManager.tableValues = []
+            for statistic in user.activities[contentManager.selectedValues.activity].overallStatistics {
+                contentManager.tableValues.append((title: statistic.name, value: String(statistic.value)))
+            }
+            
+        case 18:
+            contentManager.currentDisplay = "The new player, \(contentManager.savedTextfieldInformation[0]), has successfully been created!"
+            
+            let newPlayer: Person = Person(details: PersonDetails(name: contentManager.savedTextfieldInformation[0], uniqueID: user.playerCount, group: FixedStorage(index: -1, name: "", id: -1), team: FixedStorage(index: -1, name: "", id: -1)), currentStatistics: StatisticHolder(description: "Current", statistics: []), pastPeriods: [:])
+            user.playerCount += 1
+            
+            // Add stats here
+            for (index,(title,value)) in contentManager.tableValues.enumerated() {
+                var statistic: Statistic = user.activities[contentManager.selectedValues.activity].overallStatistics[index]
+                if value != "" {
+                    statistic.value = Float(value)!
+                }
+                newPlayer.currentStatistics.statistics.append(statistic)
+            }
+            
+            // Set the past periods statistics to reflect these initial input statistics
+            newPlayer.pastPeriods[0] = newPlayer.currentStatistics
+            newPlayer.pastPeriods[0]?.description = "Starting Stats"
+            
+            // Add stats here
             user.activities[contentManager.selectedValues.activity].people.append(newPlayer)
             
             if contentManager.selectedValues.group != -1 && contentManager.selectedValues.team != -1 {
@@ -348,13 +447,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 team.people.append(newPlayer)
             }
             
-            print(newPlayer)
+            saveGameData()
             
             contentManager.currentOptions = [(7,"Exit Menu",1)]
-        case 17:
-            contentManager.currentDisplay = "Please enter the statistics for player \(contentManager.savedTextfieldInformation[0]) using the text field."
-            contentManager.currentOptions = []
-        case 18: break
         case 19: break
         case 20:
             contentManager.currentDisplay = ""
@@ -857,7 +952,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         
         let label = view.subviews[0] as! UILabel
         
-        if label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." {
+        if label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." || label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." {
             if let _: Float = Float(newText) {
                 contentManager.tableValues[index] = (title, newText)
             } else {
