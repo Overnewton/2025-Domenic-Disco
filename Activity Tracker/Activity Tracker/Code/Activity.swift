@@ -104,6 +104,29 @@ struct PersonDetails: Codable {
     var uniqueID: Int
     var group: FixedStorage
     var team: FixedStorage
+    
+    // Function to set the players group and team details by inputting either a group or teamt
+    mutating func getFrom(_ input: Any) {
+        
+        // If the input is an array then run this code for each of the values
+        if input is [Any] {
+            for value in (input as! [Any]) {
+                self.getFrom(value)
+            }
+            
+        // If the input is a group, set the players group id and index
+        } else if input is Group {
+            let addGroup = input as! Group
+            group.id = addGroup.uniqueID
+            group.index = contentManager.selectedValues.group
+        
+        // If the input is a team, set the players team id and index
+        } else if input is Team {
+            let addTeam = input as! Team
+            team.id = addTeam.uniqueID
+            team.index = contentManager.selectedValues.team
+        }
+    }
 }
 
 struct StatisticHolder: Codable {
