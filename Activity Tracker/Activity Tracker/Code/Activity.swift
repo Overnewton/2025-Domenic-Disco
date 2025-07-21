@@ -105,7 +105,7 @@ struct PersonDetails: Codable {
     var group: FixedStorage
     var team: FixedStorage
     
-    // Function to set the players group and team details by inputting either a group or teamt
+    // Function to set the players group and team details by inputting either a group or team
     mutating func getFrom(_ input: Any) {
         
         // If the input is an array then run this code for each of the values
