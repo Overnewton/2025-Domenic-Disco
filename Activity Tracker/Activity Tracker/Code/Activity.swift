@@ -214,38 +214,74 @@ enum StatisticClass: Codable {
     case calculated, permanent, input
 }
 
+// A class used to store automatic calculations for variables
 class Calculation: Codable {
-    var primaryTerm: Float
+    // Stores the first variable
+    var primaryTerm: String
     var operation: Operation
-    var secondaryTerm: Float
+    var secondaryTerm: String
     
-    init(primaryTerm: Float, operation: Operation, secondaryTerm: Float) {
+    init(primaryTerm: String, operation: Operation, secondaryTerm: String) {
         self.primaryTerm = primaryTerm
         self.operation = operation
         self.secondaryTerm = secondaryTerm
     }
     
     func run(inputPerson: StatisticHolder) -> Float {
-        var primaryValue: Float = primaryTerm
-        var secondaryValue: Float = secondaryTerm
-        var outputValue: Float = 0
+        // Declare the two values to work with
+        var primaryValue: Float?
+        var secondaryValue: Float?
         
-        switch operation {
-        case .add:
-            outputValue = primaryValue + secondaryValue
-        case .subtract:
-            outputValue = primaryValue - secondaryValue
-        case .multiple:
-            outputValue = primaryValue * secondaryValue
-        case .divide:
-            outputValue = primaryValue / secondaryValue
+        // Get the value of the statistic index we should be looking at
+        let pv: Int = inputPerson.statistics.searchNamesFor(input: primaryTerm)
+        let sv: Int = inputPerson.statistics.searchNamesFor(input: secondaryTerm)
+        
+        // If the above code failed to find an index
+        if pv == -1 {
+            
+            // Check if the value being stored was actually just a number
+            if (Float(primaryTerm) != nil) {
+                primaryValue = Float(primaryTerm)!
+            }
+        } else {
+            // If it did work, then get the value
+            primaryValue = inputPerson.statistics[pv].value
         }
         
-        return outputValue
+        // If the above code failed to find an index
+        if sv == -1 {
+            
+            // Check if the value being stored was actually just a number
+            if (Float(secondaryTerm) != nil) {
+                secondaryValue = Float(secondaryTerm)!
+            }
+        } else {
+            // If it did work, then get the value
+            secondaryValue = inputPerson.statistics[sv].value
+        }
+        
+        // Get the output
+        var outputValue: Float?
+        
+        // Perform the appropriate calculation
+        switch operation {
+        case .add:
+            outputValue = primaryValue! + secondaryValue!
+        case .subtract:
+            outputValue = primaryValue! - secondaryValue!
+        case .multiply:
+            outputValue = primaryValue! * secondaryValue!
+        case .divide:
+            outputValue = primaryValue! / secondaryValue!
+        }
+        
+        // Return the value
+        return outputValue!
     }
 }
 
+// An operation means math stuff
 enum Operation: Codable {
-    case add, subtract, multiple, divide
+    case add, subtract, multiply, divide
 }
 
