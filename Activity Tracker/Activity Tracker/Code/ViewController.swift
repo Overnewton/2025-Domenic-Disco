@@ -1545,18 +1545,4 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         contentManager.selectedDropdownIndex = indexPath.row
         updateTextFieldWithSelectedValue()
     }
-    
-    // I wrote this and am very confused as to why
-    func generateUpdates(person: Person) {
-        // This creates a table-dropdown-text field titles "Stat To Edit", so presumably this is about
-        contentManager.currentOptions.append((identifier: 0, title: "Stat to Edit", type: 6))
-        
-        // So currently what I've gathered is that it clears the tableview values and any dropdown values
-        contentManager.storedDropdowns = []
-        contentManager.tableValues = []
-        
-        // And resets the users selection in the dropdown
-        contentManager.selectedDropdownIndex = 0
-        contentManager.selectedRow = 0
-    }
 }
