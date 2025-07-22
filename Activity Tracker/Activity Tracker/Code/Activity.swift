@@ -30,13 +30,40 @@ class Activity: Codable {
     
     // Function to assign a new statistic to the activity
     func addStatistic(name: String, value: Float, rule: [Calculation]) {
+        
+        // Create and add the statistic to the statistics
         let newStatistic: Statistic = Statistic(name: name, value: value, rule: rule)
         overallStatistics.append(newStatistic)
         
-        for (index,person) in people.enumerated() {
-            people[index].currentStatistics.statistics.append(newStatistic)
+        // Check if this statistic is an automatic calculation statistic
+        if !newStatistic.rule.isEmpty {
+            
+            for (index,person) in people.enumerated() {
+                
+                // Add the statistic
+                people[index].currentStatistics.statistics.append(newStatistic)
+                
+                // Run through their past data and add the statistic
+                for (key,_) in person.pastPeriods {
+                    
+                    // StatisticHolder is a struct, so I can't make this cleaner
+                    person.pastPeriods[key]?.statistics.append(newStatistic)
+                    
+                    person.pastPeriods[key]?.statistics[(person.pastPeriods[key]?.statistics.count)! - 1].value = newStatistic.rule[0].run(inputPerson: person.pastPeriods[key]!)
+                }
+            }
+        
+            
+        // If it isn't, then just add the statistic to the players
+        } else  {
+            for (index,person) in people.enumerated() {
+                // Add the statistic
+                people[index].currentStatistics.statistics.append(newStatistic)
+            }
         }
     }
+    
+    
     
     init(name: String, storageType: Int, people: [Person], groups: [Group], teams: [Team], combined: StatisticHolder, overallStatistics: [Statistic]) {
         self.name = name
@@ -284,4 +311,3 @@ class Calculation: Codable {
 enum Operation: Codable {
     case add, subtract, multiply, divide
 }
-
