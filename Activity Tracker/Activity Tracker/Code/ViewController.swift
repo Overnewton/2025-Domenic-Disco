@@ -79,6 +79,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         
         // Save all values that the user has input
         saveTextFieldData()
+        saveDropdownData()
         
         // Ensure that the elements to display have been cleared
         contentManager.currentOptions = []
@@ -94,7 +95,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.currentDisplay = "Save data has been detected on this device, would you like to load from one of the accounts, or create a new one?"
                 contentManager.currentOptions = []
                 
-                // For each account that is saved, display it as a selectable option
+                // For each account that is saved, display it as a button
                 for (password,username) in getPasswords() {
                     contentManager.currentOptions.append((-19,"Load \(username)",1))
                 }
@@ -104,6 +105,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             } else {
                 // If no save files exist then the user must make a new account
                 contentManager.currentDisplay = "Hello! Please create an account so that you can use this application!"
+                
+                // Create a button for account creation
                 contentManager.currentOptions = [(-16,"Create An Account",1)]
             }
             
@@ -123,6 +126,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 if username == sendString {
                     contentManager.currentDisplay = "This account requires a password to log in, would you like to access it?"
                     user.details.username = sendString
+                    
+                    // Create buttons for Yes and No
                     contentManager.currentOptions = [(-18,"Yes",1),(-20,"No",1)]
                     break
                 }
@@ -130,6 +135,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
         case -18: // Password Entry -> Has the user login to the program by inputting the password
             contentManager.currentDisplay = "Please enter the password"
+            
+            // Create a text field for password input, a button for input data and another button to exit the page
             contentManager.currentOptions = [(0,"Password",2),(-17,"Input Data",1),(-20,"Exit Menu",1)]
             
         case -17: // Password Confirmation -> Checks if input matches
@@ -145,12 +152,11 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                         // Let the user login
                         contentManager.currentDisplay = "That password is correct, the save data for account \(user.details.username) has been loaded. Please enjoy using the application!"
                         
-                        // Reset stored values
+                        // Get the app ready to start
                         clearTextFieldData()
-                        
-                        // Load the save data
                         loadGameData()
                         
+                        // Create a button for starting the program
                         contentManager.currentOptions = [(0,"Begin Using The Program",1)]
                         acceptedLogin = true
                         break
@@ -162,11 +168,15 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             if !acceptedLogin {
                 contentManager.currentDisplay = "Incorrect Password, try again."
                 clearTextFieldData()
+                
+                // Create a text field for password input, a button to input data and a button to exit the page
                 contentManager.currentOptions = [(0,"Password",2),(-17,"Input Data",1),(-20,"Exit Menu",1)]
             }
             
         case -16: // Account Creation -> Have the user input a username/password for new account
             contentManager.currentDisplay = "Please input your details"
+            
+            // Create a text field for password input, a text field for username input and a button to input data
             contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Input Data",1)]
             clearTextFieldData()
             
@@ -177,14 +187,18 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // Check if they contain "-" cause my CSV file stores the accounts as "Username-Password", so if they had "-" it would break my code
                 if contentManager.savedTextfieldInformation[1].localizedStandardContains("-") {
-                    contentManager.currentDisplay = "Unfortunately my program doesn't allow for '-' to be placed within usernames or passwords, I'm very sorry for the inconvenience but please change your input."
+                    contentManager.currentDisplay = "Unfortunately my program doesn't allow for \"-\" to be placed within usernames or passwords, I'm very sorry for the inconvenience but please change your input."
+                    
+                    // Create a text field for password input, a text field for username input, a button to input data and a button to exit the page
                     contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Submit Data",1),(-20,"Exit Menu",1)]
                     clearTextFieldData()
                 } else {
                     
                     // Make sure that neither the username or the password are blank since that might also break my code. Not sure if it would, but I just don't want to deal with it
                     if contentManager.savedTextfieldInformation.contains("") {
-                        contentManager.currentDisplay = "Unfortunately my program doesn't allow for ' ' to be used as usernames or passwords, I'm very sorry for the inconvenience but please change your input."
+                        contentManager.currentDisplay = "Unfortunately my program doesn't allow for \" \" to be used as usernames or passwords, I'm very sorry for the inconvenience but please change your input."
+                        
+                        // Create a text field for password input, a text field for username input, a button to input data and a button to exit the page
                         contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Submit Data",1), (-20,"Exit Menu",1)]
                         clearTextFieldData()
                         
@@ -200,6 +214,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                         addPassword()
                         
                         contentManager.currentDisplay = "Congratulations, your account \(user.details.username) has been created!"
+                        
+                        // Create a button to begin the application
                         contentManager.currentOptions = [(-14,"Begin Application Tutorial",1)]
                     }
                 }
@@ -207,28 +223,40 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Check if the username is already in use cause I also can't be bothered to handle two accounts with the same username but different passwords
             } else {
                 contentManager.currentDisplay = "Unfortunately that username is already in use, please select a different one"
+                
+                // Create a text field for password input, a text field for username input, and a button to input data
                 contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Submit Data",1)]
                 clearTextFieldData()
             }
             
         case -14: // Tutorial Text 1 -> Text explaining how to use my app
             contentManager.currentDisplay = "Hello my dear user, I'm Domenic Disco, the creator of this application that you are using.\n\nI'm assuming that you know what the app is about, but if you don't, it's a method of storing players and sorting for a given activity of any type"
+            
+            // Create a button to go to next page, and one to skip the tutorial
             contentManager.currentOptions = [(-13,"Next",1),(-2,"Skip Tutorial",1)]
             
         case -13: // Tutorial Text 2 -> Text explaining how to use my app
             contentManager.currentDisplay = "You could store any kind of activity, maybe board game statistics, league of legends, mario kart race times, basketball player statistics. You could even go as far as storing student grades within this application, since it's perfect for storing and sorting any kind of statistics for a group or collection of people"
+            
+            // Create a button to go to next page, and one to skip the tutorial
             contentManager.currentOptions = [(-12,"Next",1),(-2,"Skip Tutorial",1)]
             
         case -12: // Tutorial Text 3 -> Text explaining how to use my app
             contentManager.currentDisplay = "Now, how do you use my application?\n\nFirst, you create an activity. This will be done in a 3 step procedure.\n\n1 - Add the activity name, just input it into a text field and press a button to confirm\n\n2 - Add the activities statistics, type the statistic name into a text field, select it's type in a dropdown menu, and then press a button to add it\n\n3 - Add any base values for statistics, you select a statistic using a dropdown menu, and then input the basic value into the text field below.\n\nAnd that's all it takes, just do those 3 steps and you'll have an activity!"
+            
+            // Create a button to go to next page, and one to skip the tutorial
             contentManager.currentOptions = [(-11,"Next",1),(-2,"Skip Tutorial",1)]
             
         case -11:  // Tutorial Text 4 -> Text explaining how to use my app
             contentManager.currentDisplay = "But just having an activity isn't enough, you need to have some players otherwise there's not much point to the application. To make players, you follow another easy 3 step procedure\n\n1 - Add the players name, once again in a text field\n\n2 - Set the players statistics using the same method as setting basic statistics for an activity\n\n3 - Then you can decide if you want the player to be part of a team or group, allowing them to be more easily sorted.\n\nAnd that's all it needs, just 3 easy steps and you can fill up your activity with any player you'd need!"
+            
+            // Create a button to go to next page, and one to skip the tutorial
             contentManager.currentOptions = [(-10,"Next",1),(-2,"Skip Tutorial",1)]
             
         case -10:  // Tutorial Text 5 -> Text explaining how to use my app
             contentManager.currentDisplay = "And that's all you'll need to use my program! There are some complicated features later on, such as my sorting and searching algorithms, but those will be covered when you get to them. No reason to overcomplicate you experience right now.\n\nGood luck with your storing and managing of activities!"
+            
+            // Create a button to end the tutorial
             contentManager.currentOptions = [(0,"Begin The Program",1)]
             
         // Some blank cases just incase I ever need to add something to the login phase or the tutorial phase
@@ -242,7 +270,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
         case -2:  // Program Intro
             contentManager.currentDisplay = "Good luck with your storing and managing of activities!"
+            
+            // Create a button for starting the program
             contentManager.currentOptions = [(0,"Begin The Program",1)]
+            
         case -1: // Seperated Display (Probs not gonna use, but good to have just in case)
             if contentManager.displaySeperate.count > 1 {
                 contentManager.currentDisplay = contentManager.displaySeperate.first!
@@ -251,8 +282,11 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             } else {
                 contentManager.currentOptions = [(contentManager.returnPoint, "\(contentManager.exitString)", 1)]
             }
+            
         case 0: // Main Screen
             contentManager.currentDisplay = "Hello \(user.details.username), what do you want to do?"
+            
+            // Create a button for viewing activities, a button to modify settings, and a button for logging out of the account
             contentManager.currentOptions = [(1,"View Activities",1),(0,"Modify System Settings",1),(0,"Log Out",1)]
             saveGameData()
         case 1: // View Activities
@@ -260,13 +294,17 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // If user has no activities then tell them to make activity
             if user.activities.isEmpty {
-                contentManager.currentDisplay = "You currently don't have any activites, to create a new activity press 'Create New Activity'"
+                contentManager.currentDisplay = "You currently don't have any activites, to create a new activity press \"Create New Activity\""
+                
+                // Create a button for creating new activities, and a button to exit to menu
                 contentManager.currentOptions = [(2,"Create New Activity",1),(0,"Exit",1)]
             
             // Otherwise display activities and let them select
             } else {
-                contentManager.currentDisplay = "Please select the activity that you want to view using the dropdown menu. Or press 'Create New Activity' to create a new activity."
-                contentManager.currentOptions = [(0,"Activity",7),(7,"View Activity",1),(2,"Create New Activity",1)]
+                contentManager.currentDisplay = "Please select the activity that you want to view using the dropdown menu. Or press \"Create New Activity\" to create a new activity."
+                
+                // Create a tbl-dropdown combo for activities, a button to view activities, a button to create a new activity, and a button to exit the page
+                contentManager.currentOptions = [(0,"Activity",7),(7,"View Activity",1),(2,"Create New Activity",1),(0,"Exit",1)]
                 
                 // Set the table view to show activities and set the dropdown to match the tableview
                 contentManager.tableValues = []
@@ -279,11 +317,15 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 2: // Give Activity Name
             clearTextFieldData()
             contentManager.currentDisplay = "You have decided to create a new activity, what would you like it's name to be?"
+            
+            // Create a text field for the name, a button to input the name, and a button to exit the page
             contentManager.currentOptions = [(0,"Activity Name", 2),(3,"Create Activity",1), (1,"Exit Menu",1)]
         case 3: // Assign Activity Name --- Add Activity Statistics
             // Check that they did input a name
             if contentManager.savedTextfieldInformation[0] == "" {
-                contentManager.currentDisplay = "Unfortunately, you cannot give an activity the name of ''. That would just not work with the rest of my code. Please give it an actual name"
+                contentManager.currentDisplay = "Unfortunately, you cannot give an activity the name of \" \". That would just not work with the rest of my code. Please give it an actual name"
+                
+                // Create a button to exit the page
                 contentManager.currentOptions = [(2,"Exit",1)]
             
             // If they did, ensure that the name isn't already being used
@@ -298,17 +340,25 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 // If name is already used then have them select a new name
                 if dupeName {
                     contentManager.currentDisplay = "Unfortunately, you cannot give an activity a name that's already been used. Please give it a different name"
+                    
+                    // Create a button to exit the page
                     contentManager.currentOptions = [(2,"Exit",1)]
                 
                 // If the name isn't already used, then let them input the statistics for that activity
                 } else {
                     contentManager.currentDisplay = "Please input the statistics that will be used for activity \(contentManager.savedTextfieldInformation[0]).\n\nTo do this, write down the statistic name in the text field, and then exit the text field to add it to the table."
+                    
+                    // Create a tbl-textField for statistics, a button for inputing the statistics, and a button to exit the menu
                     contentManager.currentOptions = [(0,"Statistic",8),(4,"Finalise Statistics",1),(1,"Exit Menu",1)]
+                    
+                    // Make the table start out with a placeholder statistic that has no associated value
                     contentManager.tableValues = [("Placeholder","")]
                 }
             }
         case 4: // Adding Values
             contentManager.currentDisplay = "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use."
+            
+            // Create a tbl-dropdown-textField for the statistic, a button to input the statistics, and a button to exit the page
             contentManager.currentOptions = [(0,"Statistic",6), (5,"Finalise Statistics",1), (1,"Exit Menu",1)]
             
             // Set all values to start with 0 as the basic
@@ -317,6 +367,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
         case 5: // Select Activity Type
             contentManager.currentDisplay = "This activity can be further customised. You have three choices for what type of activity you want it to be:\n\nOption 1 - The activity will have both groups and teams, meaning you can split up players two seperate times, such as age group and then by division.\n\nOption 2 - The activity will have teams, meaning you can split players up based on just one category like division or age group.\n\nOption 3 - The activity won't have groups or teams, instead just stores all the players together.\n\nWhich method would you like to use?\n"
+            
+            // Create a button for each of the 3 options, and 1 button to exit the page
             contentManager.currentOptions = [(6,"Option 1",1),(6,"Option 2",1),(6,"Option 3",1),(1,"Exit Menu",1)]
         case 6: // Finalise Activity Creation
         
@@ -359,13 +411,22 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             contentManager.currentDisplay = "You are currently viewing \(useActivity.name), an activity that is tracking \(useActivity.overallStatistics.count) statistics for a total of \(useActivity.people.count) people"
             
-            // Based on whether the activity has teams and groups, decide what options to give to the user
+            
+            // Create a button for viewing the activity, and a button for viewing the players in the activity
+            contentManager.currentOptions = [(21,"View Activity Details",1), (12,"View All Players",1)]
+                                             
             switch useActivity.storageType {
-            case 1: contentManager.currentOptions = [(21,"View Activity Details",1), (12,"View All Players",1), (8,"View Groups",1), (10,"View Teams",1), (1,"Exit Menu",1)]
-            case 2: contentManager.currentOptions = [(21,"View Activity Details",1), (12,"View All Players",1), (10,"View Teams",1), (1,"Exit Menu",1)]
-            case 3: contentManager.currentOptions = [(21,"View Activity Details",1), (12,"View All Players",1), (1,"Exit Menu",1)]
+                // If the activity has groups and teams, make a button for each of those
+            case 1: contentManager.currentOptions += [(8,"View Groups",1), (10,"View Teams",1)]
+                
+                // If the activity just has teams, with no groups, make a button to view the teams
+            case 2: contentManager.currentOptions += [(10,"View Teams",1)]
             default: break
             }
+            
+            // Add a button to exit the page
+            contentManager.currentOptions += [(1,"Exit Menu",1)]
+            
         case 8: // Select Group
             // Reset the team and player values to avoid later issues
             contentManager.selectedValues.team = -1
@@ -376,12 +437,16 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // If no groups exist then have the user make a new group
             if activity.groups.isEmpty {
-                contentManager.currentDisplay = "You currently don't have any groups, to create a new group press 'Create New Group'"
+                contentManager.currentDisplay = "You currently don't have any groups, to create a new group press \"Create New Group\""
+                
+                // Create a button to create a new group, and a button to exit the page
                 contentManager.currentOptions = [(23,"Create New Group",1),(7,"Exit",1)]
             
             // Otherwise display groups and let them select
             } else {
-                contentManager.currentDisplay = "Please select the group that you want to view using the dropdown menu. Or press 'Create New Group' to create a new group."
+                contentManager.currentDisplay = "Please select the group that you want to view using the dropdown menu. Or press \"Create New Group\" to create a new group."
+                
+                // Create a tbl-dropdown for the groups, a button to view a group, a button to create a group, and a button to exit the page
                 contentManager.currentOptions = [(0,"Group",7),(9,"View Group",1),(2,"Create New Group",1),(7,"Exit Menu",1)]
                 
                 // Set the table view to show groups and set the dropdown to match the tableview
@@ -402,6 +467,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // MARK: AAAAA
             // WORK IN PROGRESS, DISPLAY THE GROUP HERE, ADD A OPTION TO VIEW PLAYERS FOR GROUP, ADD A OPTION TO DELETE GROUP, ETC
             contentManager.currentDisplay = "View Group Screen -> Set text here"
+            
+            // Make a button to exit the menu, later I will add the other options here, but for now it's not there
             contentManager.currentOptions = [(7,"Exit Menu",1)]
             
         case 10: // Select Team
@@ -460,11 +527,15 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // If no teams exist then have the user make a team
             if noTeams {
                 contentManager.currentDisplay = "Select Team Screen"
+                
+                // Create a button to exit the menu
                 contentManager.currentOptions = [(7,"Exit Menu",1)]
             
             // Otherwise let the user select the team
             } else {
                 contentManager.currentDisplay = "Select Team Screen"
+                
+                // Create a button to exit the menu
                 contentManager.currentOptions = [(7,"Exit Menu",1)]
                 
                 // Display the players names in the tableValues
@@ -502,6 +573,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
             
             contentManager.currentDisplay = "View Team Screen"
+            
+            // Create a button to exit the menu
             contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 12: // Viewing Players
             
@@ -542,11 +615,15 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // If no people are in the array then have the user add a new player
             if displayPeople.isEmpty {
-                contentManager.currentDisplay = "Currently your selection doesn't have any players, to create a new player, press 'Add New Player'"
+                contentManager.currentDisplay = "Currently your selection doesn't have any players, to create a new player, press \"Add New Player\""
+                
+                // Create a button to create a new player, and a button to exit the page
                 contentManager.currentOptions = [(13,"Add New Player",1),(7,"Exit",1)]
             } else {
                 // Otherwise let them select the player they want to view
-                contentManager.currentDisplay = "Please select the player that you want to view using the dropdown menu. Or press 'Add New Player' to input a new player."
+                contentManager.currentDisplay = "Please select the player that you want to view using the dropdown menu. Or press \"Add New Player\" to input a new player."
+                
+                // Create a tbl-dropdown for the player, a button for viewing a player, a button to create a new player, and a button to exit the page
                 contentManager.currentOptions = [(0,"Player",7), (22,"View Player",1), (13,"Add New Player",1), (7,"Exit",1)]
                 
                 // Display the players names in the tableValues
@@ -559,12 +636,17 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
         case 13: // Create Player -> Assign Name
             contentManager.currentDisplay = "What would you like this player to be named?"
+            
+            // Create a text field with the name, a button to input the name, and a button to exit the menu
             contentManager.currentOptions = [(0,"Name",2),(14,"Submit Name",1),(7,"Exit Menu",1)]
+            
             clearTextFieldData()
         case 14: // Create Player -> Check Name / Add Statistics
             // Check that name isn't blank
             if contentManager.savedTextfieldInformation[0] == "" {
                 contentManager.currentDisplay = "Unfortunately, you cannot give a player a blank name. That would just not work with the rest of my code. Please give them an actual name"
+                
+                // Create a button to exit the menu
                 contentManager.currentOptions = [(13,"Exit",1)]
             } else {
                 // If name isn't blank, then make sure that no other player within the activity has the same name
@@ -578,22 +660,29 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 // If they do have the same name then make the user change it
                 if dupeName {
                     contentManager.currentDisplay = "Unfortunately, you cannot give a player a name that's already been used. Please give it a different name"
+                    
+                    // Create a button to exit the menu
                     contentManager.currentOptions = [(13,"Exit",1)]
                 } else {
                     // Otherwise, let the user decide whether to input some base statistics or not
-                    contentManager.currentDisplay = "Within my application, the players that you create are able to hold statistics from a given period of time, such as from a match or a training or any kind of event\n\nIf you have one singular events data to input, then please press 'Input Statistics'.\n\nHowever, if you either don't have any statistics or have more than one events worth of statistics, please press 'Input Player', and add the statistics in later."
+                    contentManager.currentDisplay = "Within my application, the players that you create are able to hold statistics from a given period of time, such as from a match or a training or any kind of event\n\nIf you have one singular events data to input, then please press \"Input Statistics\".\n\nHowever, if you either don't have any statistics or have more than one events worth of statistics, please press \"Finalise Player\", and add the statistics in later."
                     
-                    contentManager.currentOptions = [(16,"Input Statistics",1), (15,"Input Player",1)]
+                    // Create a button to input statistics for the player, and a button to input the player
+                    contentManager.currentOptions = [(16,"Input Statistics",1), (15,"Finalise Player",1)]
                     contentManager.tableValues = [("Placeholder","")]
                 }
             }
             
         case 15: // Input Player
-            contentManager.currentDisplay = "If you are 100% certain about inputting this player to your activity, please press 'Input Player', otherwise please press 'Exit Menu'"
+            contentManager.currentDisplay = "If you are 100% certain about inputting this player to your activity, please press \"Input Player\", otherwise please press \"Exit Menu\""
+            
+            // Create a button to input the player and a button to exit the page
             contentManager.currentOptions = [(17,"Input Player",1), (7,"Exit Menu",1)]
             
         case 16: // Input Player Statistics While Creating
             contentManager.currentDisplay = "Please enter the statistics for player \(contentManager.savedTextfieldInformation[0]) using the text field."
+            
+            // Create a tbl-dropdown-textField for the statistic, and a button to input the statistics
             contentManager.currentOptions = [(0,"Statistic",6),(17,"Finalise Statistics",1)]
             
             // Have the tableview show all of the players statistics, with their basic values
@@ -657,33 +746,83 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             } else if contentManager.selectedValues.team != -1 {
                 // Add the player to the team
                 let team: Team = activity.teams[contentManager.selectedValues.team]
+                team.people.append(newPlayer)
                 
                 // Update the players details
-                team.people.append(newPlayer)
                 newPlayer.details.getFrom(team)
             }
             
             saveGameData()
             
+            // Create a button to exit the page
             contentManager.currentOptions = [(7,"Exit Menu",1)]
-        case 18: break
-        case 19: break
-        case 20: break
+            
+        case 18: break // Blank cases incase later I need to modify code
+        case 19: break // Blank cases incase later I need to modify code
+        case 20: break // Blank cases incase later I need to modify code
         case 21: // View Activity Details
+            // Get the activity
             let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            
+            // Display the name
             contentManager.currentDisplay = "Activity: \(activity.name)"
+            
+            //MARK: Maybe put some more activity details here
+            
+            
+            // Create a table that shows the statistics, and a button to exit the page
             contentManager.currentOptions = [(0,"Statistics",9),(7,"Exit Menu",1)]
+            
+            // Showcase the statistics for the activity
             contentManager.tableValues = []
             for statistic in activity.overallStatistics {
                 contentManager.tableValues.append((title: statistic.name,value: String(statistic.value)))
             }
-        case 22:
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
             
-            contentManager.currentDisplay = "View Player"
-            contentManager.currentOptions = [(7,"Exit Menu",1)]
+        case 22: // View Player
+            // Get activity and player
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            var player: Person?
+            
+            // Set the value of the selected player
+            if sender.titleLabel!.text == "View Player" {
+                contentManager.selectedValues.player = contentManager.savedDropdownInformation
+            }
 
-            Person(details: PersonDetails(name: contentManager.savedTextfieldInformation[0], uniqueID: user.playerCount, group: FixedStorage(index: -1, name: "", id: -1), team: FixedStorage(index: -1, name: "", id: -1)), currentStatistics: StatisticHolder(description: "Current", statistics: []), pastPeriods: [:])
+            // Figure out if player is from all players or just from group or team players
+            if contentManager.selectedValues.group == -1 {
+                
+                // If not in group and not in team then it's just from activity
+                if contentManager.selectedValues.team == -1 {
+                    print(activity.people)
+                    print(contentManager.selectedValues.player)
+                    player = activity.people[contentManager.selectedValues.player]
+                    
+                // If not in group but in team, then it's from activity-team
+                } else {
+                    let team: Team = activity.teams[contentManager.selectedValues.team]
+                    player = team.people[contentManager.selectedValues.player]
+                }
+            } else {
+                
+                // If in group but not in team, then it's from activity-group
+                if contentManager.selectedValues.team == -1 {
+                    let group: Group = activity.groups[contentManager.selectedValues.group]
+                    player = group.people[contentManager.selectedValues.player]
+                    
+                // If in group and in team, then it's from activity-group-team
+                } else {
+                    let group: Group = activity.groups[contentManager.selectedValues.group]
+                    let team: Team = group.teams[contentManager.selectedValues.team]
+                    player = team.people[contentManager.selectedValues.player]
+                }
+            }
+            
+            // Unsure exactly what to display here for now, so it called on the display function
+            contentManager.currentDisplay = player!.display()
+            
+            // Create a button to exit the menu
+            contentManager.currentOptions = [(7,"Exit Menu",1)]
         case 23: break
         case 24: break
         case 25: break
@@ -783,24 +922,31 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         }
     }
     
+    // Simulates pressing the up arrow
     @objc func upArrowPressed(_ sender: UIKeyCommand) {
         let value: Int = checkArrows()
         if value != -1 {
             runFakeButton((contentManager.currentOptions[value].identifier, "↑", contentManager.currentOptions[value].type))
         }
     }
+    
+    // Simulates pressing the down arrow
     @objc func downArrowPressed(_ sender: UIKeyCommand) {
         let value: Int = checkArrows()
         if value != -1 {
             runFakeButton((contentManager.currentOptions[value].identifier, "↓", contentManager.currentOptions[value].type))
         }
     }
+    
+    // Simulates pressing the left arrow
     @objc func leftArrowPressed(_ sender: UIKeyCommand) {
         let value: Int = checkArrows()
         if value != -1 {
             runFakeButton((contentManager.currentOptions[value].identifier, "←", contentManager.currentOptions[value].type))
         }
     }
+    
+    // Simulates pressing the right arrow
     @objc func rightArrowPressed(_ sender: UIKeyCommand) {
         let value: Int = checkArrows()
         if value != -1 {
@@ -808,6 +954,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         }
     }
     
+    // Simulates pressing a button with any given values
     func runFakeButton(_ input: (Int,String,Int)) {
         let buttonInput: UIButton = UIButton()
         buttonInput.tag = input.0
@@ -815,6 +962,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         buttonPressed(buttonInput)
     }
     
+    // Checks if buttons exist that arrows can be used for
     func checkArrows() -> Int {
         for (index,(_,_,value)) in contentManager.currentOptions.enumerated() {
             if value == 4 {
@@ -824,10 +972,12 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         return -1
     }
     
+    // Clears any saved text field information
     func clearTextFieldData() {
         contentManager.savedTextfieldInformation = []
     }
     
+    // Saves all data from text fields to an array
     func saveTextFieldData() {
         for textField in textFields {
             contentManager.savedTextfieldInformation.append(textField.text ?? "")
@@ -835,37 +985,75 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         textFields.removeAll()
     }
     
+    // Saves the dropdown information from all dropdown menus on the screen
+    func saveDropdownData() {
+        // Get the dropdowns
+        for dropdown in dropdowns {
+            let selectedIndex = dropdown.selectedRow(inComponent: 0)
+            if selectedIndex >= 0 && selectedIndex < contentManager.storedDropdowns.count {
+                // Save the data
+                contentManager.savedDropdownInformation = selectedIndex
+            } else {
+                contentManager.savedDropdownInformation = 0 // Handle invalid selection
+            }
+        }
+        
+        // Clear displayed dropdowns
+        contentManager.storedDropdowns = []
+        dropdowns.removeAll()
+    }
+    
+    // Code that creates visual elements to be displayed on the screen
     func runUpdates(_ sender: UIButton) {
+        
+        // yOffset is the distance from the top of the screen that UI Elements are given
         var yOffset: CGFloat = 60
         
         // Sets the displayed text at the top of the page as a UILabel
         let displayLabel = UILabel()
+        
+        // Use the currentDisplay to set the text
         displayLabel.text = contentManager.currentDisplay
         contentManager.currentDisplay = ""
+        
+        // Make the label wrap and take up as much space as it needs
         displayLabel.numberOfLines = 0
         displayLabel.frame = CGRect(x: 10, y: yOffset, width: view.frame.width - 20, height: 0)
         displayLabel.sizeToFit()
+        
+        // Add the label to the screen
         view.addSubview(displayLabel)
+        
+        // Make sure we adjust the positions of any other elements based on the text size
         if displayLabel.text != "" {
             yOffset += displayLabel.frame.height + 10
         }
         
+        // Used for testing to allow the use of keyboard control to simulate button presses
+        // No reason to remove it since this app could still be used on a macbook or other keyboard device
         var index: Int = 0
+        
         // Then uses each stored option in contentManager.currentOptions to create elements
         for (identifier, title, type) in contentManager.currentOptions {
             switch type {
             case 1:
-                // Creates buttons
+                // Creates button
                 let button = createButton(with: title, action: #selector(buttonPressed(_:)), color: .systemBlue)
                 button.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 40)
+                
+                // Make the button (when pressed) run the specific code in the big switch case
                 button.tag = identifier
+                
+                // Add button to screen
                 view.addSubview(button)
+                
+                // Handling for keyboard controls
                 if index < 9 && title != "" {
                     let label = UILabel()
                     label.textColor = .systemBlue
                     label.layer.position.x = 370
                     label.layer.position.y = yOffset + 10
-                    label.font = UIFont.systemFont(ofSize: 15) // Adjust font size as needed
+                    label.font = UIFont.systemFont(ofSize: 15)
                     label.text = "[\(index + 1)]"
                     index += 1
                     label.sizeToFit() // Resize label based on content
@@ -875,33 +1063,51 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 yOffset += 50
             case 2:
-                // Creates text fields
+                // Creates a label for the text field
                 let label = UILabel()
                 label.text = "Enter \(title):"
                 label.frame = CGRect(x: 10, y: yOffset, width: view.frame.width - 40, height: 20)
+                
+                // Add it to the screen
                 view.addSubview(label)
+                
                 yOffset += 30
                 
+                // Creates a text field
                 let textField = UITextField()
                 textField.borderStyle = .roundedRect
                 textField.frame = CGRect(x: 10, y: yOffset, width: view.frame.width - 40, height: 40)
+                
+                // Add it to the screen
                 view.addSubview(textField)
+                
+                // Add it to the array of text fields
                 textFields.append(textField)
+                
+                // And make sure it has no text to begin with
                 textField.text = ""
+                
                 yOffset += 50
             case 3:
-                // Creates dropdown menus
+                // Creates a label for the dropdown menu
                 let label = UILabel()
                 label.text = "Select \(title):"
                 label.frame = CGRect(x: 10, y: yOffset, width: view.frame.width - 40, height: 20)
+                
+                // Add it to the screen
                 view.addSubview(label)
                 yOffset += 10
                 
+                // Creates a dropdown box (I call it dropdown because I will absolutely not remember picker)
                 let dropdown = UIPickerView()
                 dropdown.delegate = self
                 dropdown.dataSource = self
                 dropdown.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 150)
+                
+                // Add it to the screen
                 view.addSubview(dropdown)
+                
+                // Add it to the array of dropdowns
                 dropdowns.append(dropdown)
                 yOffset += 160
             case 4:
@@ -932,6 +1138,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 let label = UILabel()
                 label.text = "Select \(title):"
                 label.frame = CGRect(x: 10, y: yOffset, width: view.frame.width - 40, height: 20)
+                
+                // Add it to the screen
                 view.addSubview(label)
                 yOffset += 10
                 
@@ -940,17 +1148,24 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 dropdown.delegate = self
                 dropdown.dataSource = self
                 dropdown.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 150)
+                
+                // Add it to the screen
                 view.addSubview(dropdown)
+                
+                // Add it to the array of dropdown menus
                 dropdowns.append(dropdown)
                 yOffset += 10
             
                 // Creates the display label below
                 let subLabel = UILabel()
                 subLabel.numberOfLines = 0
+                
                 // Ensure the subLabel can hold that many characters in size
                 subLabel.text = "__________________________________________________________________________________________________________________________________________________"
                 subLabel.frame = CGRect(x: 10, y: yOffset + 160, width: view.frame.width - 40, height: 20)
                 subLabel.sizeToFit()
+                
+                // Add it to the screen
                 view.addSubview(subLabel)
                 yOffset += (subLabel.frame.height + 10)
                 
@@ -958,29 +1173,45 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // Initialise the subLabel
                 pickerView(dropdown, didSelectRow: 0, inComponent: 0)
+                
+                // Okay so this code above is for one specific purpose
+                // It initialises a dropdown menu with a label above it to explain what it's about
+                // It then creates a label below the dropdown menu that is linked to the dropdown menu
+                // Quite simply, you select an option from the dropdown menu and the label below displays certain text for that option
+                // I plan on using this after the player makes some analysis request
+                // So they might say "find me the best 5 players using these stats criterions, and place those 5 players into these 5 positions"
+                // And then my code goes "Okay, here's a dropdown menu with 5 elements, each titled with the position title. Select it and see what players got chosen and why"
             case 6:
                 // Table View
+                
+                // Create table
                 let tableView = UITableView()
                 tableView.delegate = self
                 tableView.dataSource = self
                 tableView.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 150)
                 tableView.tag = 999  // arbitrary tag to find later
+                
+                // Add it to the screen
                 view.addSubview(tableView)
                 yOffset += 240
                 
-                // Picker label
+                // Dropdown label
                 let label = UILabel()
                 label.text = "Select \(title):"
                 label.frame = CGRect(x: 10, y: yOffset, width: view.frame.width - 40, height: 20)
+                
+                // Add it to the screen
                 view.addSubview(label)
                 yOffset += 30
 
-                // Picker
+                // Dropdown
                 let dropdown = UIPickerView()
                 dropdown.delegate = self
                 dropdown.dataSource = self
                 dropdown.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 100)
                 dropdown.tag = dropdowns.count // to identify in delegate
+                
+                // Add it to the screen
                 view.addSubview(dropdown)
                 dropdowns.append(dropdown)
                 yOffset += 110
@@ -989,65 +1220,88 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 let textField = UITextField()
                 textField.borderStyle = .roundedRect
                 textField.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 40)
-                textFields.append(textField)
+                
+                // Add it to the screen
                 view.addSubview(textField)
+                
+                // Add it to the array of text fields
+                textFields.append(textField)
+                
                 yOffset += 50
 
                 // Refresh selection state
                 pickerView(dropdown, didSelectRow: 0, inComponent: 0)
             case 7:
-                // Table View
+                // Create table
                 let tableView = UITableView()
                 tableView.delegate = self
                 tableView.dataSource = self
                 tableView.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 150)
                 tableView.tag = 999  // arbitrary tag to find later
+                
+                // Add it to the screen
                 view.addSubview(tableView)
                 yOffset += 160
                 
-                // Picker label
+                // Create Label for Dropdown
                 let label = UILabel()
                 label.text = "Select \(title):"
                 label.frame = CGRect(x: 10, y: yOffset, width: view.frame.width - 40, height: 20)
+                
+                // Add it to the screen
                 view.addSubview(label)
                 yOffset += 30
 
-                // Picker
+                // Dropdown
                 let dropdown = UIPickerView()
                 dropdown.delegate = self
                 dropdown.dataSource = self
                 dropdown.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 100)
                 dropdown.tag = dropdowns.count // to identify in delegate
+                
+                // Add it to the screen
                 view.addSubview(dropdown)
+                
+                // Add it to the array of dropdowns
                 dropdowns.append(dropdown)
                 yOffset += 110
 
                 // Refresh selection state
                 pickerView(dropdown, didSelectRow: 0, inComponent: 0)
             case 8:
-                // Table View
+                // Create Table
                 let tableView = UITableView()
                 tableView.delegate = self
                 tableView.dataSource = self
                 tableView.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 150)
                 tableView.tag = 999  // arbitrary tag to find later
+                
+                // Add it to the screen
                 view.addSubview(tableView)
                 yOffset += 160
 
-                // Text Field
+                // Create Text Field
                 let textField = UITextField()
                 textField.borderStyle = .roundedRect
                 textField.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 40)
                 textField.text = ""
+                
+                // Add it to the array of text fields
                 textFields.append(textField)
+                
+                // Add it to the screen
                 view.addSubview(textField)
                 yOffset += 50
                 
-                // Creates buttons
+                // Creates button for adding the textField elements to the table view
                 let button = createButton(with: "Add \(title)", action: #selector(addTableValues(_:)), color: .systemBlue)
                 button.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 40)
                 button.tag = identifier
+                
+                // Add it to the screen
                 view.addSubview(button)
+                
+                // Handle using numkeys for button
                 if index < 9 && title != "" {
                     let label = UILabel()
                     label.textColor = .systemBlue
@@ -1062,10 +1316,12 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 }
                 yOffset += 50
                 
-                // Creates buttons
+                // Creates button for removing the last element from the table
                 let button2 = createButton(with: "Remove \(title)", action: #selector(removeTableValues(_:)), color: .systemBlue)
                 button2.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 40)
                 button2.tag = identifier
+                
+                // Add it to the screen
                 view.addSubview(button2)
                 if index < 9 && title != "" {
                     let label = UILabel()
@@ -1086,6 +1342,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 let label = UILabel()
                 label.text = "     \(title):"
                 label.frame = CGRect(x: 10, y: yOffset, width: view.frame.width - 40, height: 20)
+                
+                // Add it to the screen
                 view.addSubview(label)
                 yOffset += 30
                 
@@ -1095,6 +1353,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 tableView.dataSource = self
                 tableView.frame = CGRect(x: 20, y: yOffset, width: view.frame.width - 40, height: 150)
                 tableView.tag = 999  // arbitrary tag to find later
+                
+                // Add it to the screen
                 view.addSubview(tableView)
                 yOffset += 240
             default:
@@ -1103,11 +1363,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         }
     }
     
+    // Takes a user input of a selected element in a dropdown, and finds the value associated with that element
     func getSelectedValue() -> String {
         let statIndex = contentManager.selectedDropdownIndex
         return contentManager.tableValues[statIndex].value
     }
     
+    // Creates a button from an input
     func createButton(with title: String, action: Selector, color: UIColor) -> UIButton {
         let button = UIButton(type: .system)
         button.setTitle(title, for: .normal)
@@ -1117,8 +1379,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         return button
     }
 
-    // MARK: - PickerView DataSource & Delegate
-
+    // MARK: - PickerView DataSource & Delegate   (IDK HOW THESE WORK BUT THEY DO)
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }
@@ -1142,18 +1403,26 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
 
     // MARK: - TextField Updates
 
+    // This code lets you select an element in a dropdown, and it fills a text field with the associated value
     func updateTextFieldWithSelectedValue() {
-        print("updateTextFieldWithSelectedValue()")
         let index = contentManager.selectedDropdownIndex
+        
+        // Make sure it's a valid index otherwise the app will kill itself
         guard index < contentManager.tableValues.count else { return }
         
+        // Get the value at that relevant index
         let selectedValue = contentManager.tableValues[index].value
         
-        // Find the first UITextField in the view (assuming there's only one relevant one)
+        // Find the first Text Field in the view (assuming there's only one relevant one)
         for subview in view.subviews {
+            
+            // tf is short for text field
             if let tf = subview as? UITextField {
+                
+                // Set the text field's text to the value from the dropdown selection
                 tf.text = selectedValue
-                // Add target only once to avoid duplicates if needed
+                
+                // Okay so idk much about this section, but for some reason when I was coding this function one morning in english class, the entire code was just breaking, and then I removed the version of this from the initial declaration or something and then added it here and it just worked and so I'm not going to question it and just keep it here
                 if tf.allTargets.isEmpty {
                     tf.addTarget(self, action: #selector(updateTableValue(_:)), for: .editingChanged)
                 }
@@ -1162,8 +1431,11 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         }
     }
 
+    // This function runs when a text field is edited and that text field is linked to a tableView value
     @objc func updateTableValue(_ sender: UITextField) {
         print("updateTableValue()")
+        
+        // Make sure that we're trying to edit an actual existing value
         let index = contentManager.selectedDropdownIndex
         guard index < contentManager.tableValues.count,
               let newText = textFields[0].text else { return }
@@ -1171,50 +1443,82 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         // Update the value in the tuple while preserving title and type
         let (title, value) = contentManager.tableValues[index]
         
+        // Get the text from the top of the screen (I know it's going to be [0] because my code has no elements in the view until I add the basic text
         let label = view.subviews[0] as! UILabel
         
+        // Now, for two very specific text fields, when you're inputting statistic values, the values must be Floats, so MAKE SURE TO ADD TO THIS IF STATEMENT WHEN YOU NEED ONLY NUMBERS TO BE INPUT
         if label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." || label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." {
+            
+            // So basically it checks if the text can be turned into a float. If it can then no problems
             if let _: Float = Float(newText) {
                 contentManager.tableValues[index] = (title, newText)
+                
+            // If it can't then remove the most recent text input from the text field
             } else {
                 var newText: String = textFields[0].text!
                 if newText != "" {
                     newText.removeLast()
                     textFields[0].text = newText
+                    
+                    // Now, my code will break if you copy paste text into the text field, since it only removes the last character
+                    // But if you do copy paste into the text field then you're clearly not trying to use my application for a good reason
+                    // And I just don't care about you running into some slight issues
                 }
             }
+        
+        // If it's not one of the two important Float cases then just let the text change
         } else {
             contentManager.tableValues[index] = (title, newText)
         }
         
         
-        // Reload the table view to reflect changes
+        // Reload the table view to reflect the changes
         if let tableView = view.viewWithTag(999) as? UITableView {
             tableView.reloadData()
         }
     }
     
+    // This function is for adding input text field values into a table
     @objc func addTableValues(_ sender: UIButton) {
         print("addTableValues()")
-        let text = view.subviews[2] as! UITextField
+        
+        // The table will be [1] since the creation order goes "Top Text -> ***Table*** -> Text Field -> Button"
         let table = view.subviews[1] as! UITableView
+        
+        // The text field will be [2] since the creation order goes "Top Text -> Table -> ***Text Field*** -> Button"
+        let text = view.subviews[2] as! UITextField
+        
+        // If there is a proper text input
         if text.text! != "" {
+            
+            // If there's no values then just set the values
             if contentManager.tableValues.isEmpty {
                 contentManager.tableValues = [(title: text.text!, value: "")]
+                
+            // If there's a placeholder then just set the value
             } else if contentManager.tableValues[0] == ("Placeholder","") {
                 contentManager.tableValues = [(title: text.text!, value: "")]
+            
+            // Otherwise add the value onto the table
             } else {
                 contentManager.tableValues.append((title: text.text!, value: ""))
             }
+            
+            // And then refresh the table
             table.reloadData()
         }
     }
     
+    // This function removes values from a table
     @objc func removeTableValues(_ sender: UIButton) {
         print("removeTableValues()")
+        
+        // If there are values in the table then remove the last value
         if contentManager.tableValues.count >= 1 {
             let table = view.subviews[1] as! UITableView
             contentManager.tableValues.removeLast()
+            
+            // Refresh the table
             table.reloadData()
         }
     }
@@ -1241,11 +1545,17 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         contentManager.selectedDropdownIndex = indexPath.row
         updateTextFieldWithSelectedValue()
     }
-
+    
+    // I wrote this and am very confused as to why
     func generateUpdates(person: Person) {
+        // This creates a table-dropdown-text field titles "Stat To Edit", so presumably this is about
         contentManager.currentOptions.append((identifier: 0, title: "Stat to Edit", type: 6))
+        
+        // So currently what I've gathered is that it clears the tableview values and any dropdown values
         contentManager.storedDropdowns = []
         contentManager.tableValues = []
+        
+        // And resets the users selection in the dropdown
         contentManager.selectedDropdownIndex = 0
         contentManager.selectedRow = 0
     }

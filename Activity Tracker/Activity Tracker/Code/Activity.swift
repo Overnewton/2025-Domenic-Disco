@@ -81,6 +81,10 @@ class Team: Codable {
 
 // This is a fixed storage struct, used to ensure no data irregularities exist
 // This records an index within an array, and it's name, so that if for some reason they shift up or down 1 slot in the array, I have this kinda 2 step process where I confirm that both the index and the names match
+
+// Example Use : The player is in team 3, which is in index slot 2 of the Teams array
+// If team 2 gets removed, team 3 moves to index slot 1 which now means that any values that refer to team 3 as index slot 2 are now out of whack
+// Unsure about where specifically this could occur, or what problems it may bring to my code, but this Fixed Storage system is just there to make sure that if problems do pop up later in my code, that I can handle them much easier without any code refactoring
 struct FixedStorage: Codable {
     var index: Int
     var name: String
@@ -96,6 +100,48 @@ class Person: Codable {
         self.details = details
         self.currentStatistics = currentStatistics
         self.pastPeriods = pastPeriods
+    }
+    
+    // Function to display a player
+    func display() -> String {
+        
+        // Get the text to describe their group
+        var groupText: String = ""
+        if contentManager.selectedValues.group != -1 {
+            
+            // If they start their name with "group" then don't add a second group to it
+            if details.group.name.components(separatedBy: " ")[0].lowercased() == "group" {
+                groupText = "They are in \"\(details.group.name)\""
+            } else {
+                groupText = "They are in the group \"\(details.group.name)\""
+            }
+            groupText += "\n"
+        }
+        
+        // Get the text to describe their team
+        var teamText: String = ""
+        if contentManager.selectedValues.team != -1 {
+            
+            // If they start their name with "team" then don't add a second team to it
+            if details.team.name.components(separatedBy: " ")[0].lowercased() == "team" {
+                teamText = "They are in \"\(details.team.name)\""
+            } else {
+                teamText = "They are in the team \"\(details.team.name)\""
+            }
+            teamText += "\n"
+        }
+        
+        var doubleCheck: String = ""
+        if pastPeriods.count != 1 {
+            doubleCheck = "s"
+        }
+        
+        // Return the values
+        return """
+        You are currently viewing \(details.name), a member of the \(user.activities[contentManager.selectedValues.activity].name) activity.
+        \(groupText)\(teamText)
+        They currently have \(pastPeriods.count) data input\(doubleCheck)
+        """
     }
 }
 
