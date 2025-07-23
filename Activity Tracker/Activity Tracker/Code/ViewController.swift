@@ -202,12 +202,12 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                         contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Submit Data",1), (-20,"Exit Menu",1)]
                         clearTextFieldData()
                         
-                    // If it passes all the checks, then let them create the account
+                        // If it passes all the checks, then let them create the account
                     } else {
                         // Set the users details
                         user.details.password = contentManager.savedTextfieldInformation[0]
                         user.details.username = contentManager.savedTextfieldInformation[1]
-    
+                        
                         clearTextFieldData()
                         
                         // Add the account to the save file
@@ -220,7 +220,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     }
                 }
                 
-            // Check if the username is already in use cause I also can't be bothered to handle two accounts with the same username but different passwords
+                // Check if the username is already in use cause I also can't be bothered to handle two accounts with the same username but different passwords
             } else {
                 contentManager.currentDisplay = "Unfortunately that username is already in use, please select a different one"
                 
@@ -259,7 +259,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Create a button to end the tutorial
             contentManager.currentOptions = [(0,"Begin The Program",1)]
             
-        // Some blank cases just incase I ever need to add something to the login phase or the tutorial phase
+            // Some blank cases just incase I ever need to add something to the login phase or the tutorial phase
         case -9: break
         case -8: break
         case -7: break
@@ -290,7 +290,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentOptions = [(1,"View Activities",1),(0,"Modify System Settings",1),(0,"Log Out",1)]
             saveGameData()
         case 1: // View Activities
-            contentManager.savedTextfieldInformation = []
+            clearTextFieldData()
             
             // If user has no activities then tell them to make activity
             if user.activities.isEmpty {
@@ -298,8 +298,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // Create a button for creating new activities, and a button to exit to menu
                 contentManager.currentOptions = [(2,"Create New Activity",1),(0,"Exit",1)]
-            
-            // Otherwise display activities and let them select
+                
+                // Otherwise display activities and let them select
             } else {
                 contentManager.currentDisplay = "Please select the activity that you want to view using the dropdown menu. Or press \"Create New Activity\" to create a new activity."
                 
@@ -327,8 +327,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // Create a button to exit the page
                 contentManager.currentOptions = [(2,"Exit",1)]
-            
-            // If they did, ensure that the name isn't already being used
+                
+                // If they did, ensure that the name isn't already being used
             } else {
                 var dupeName: Bool = false
                 for activity in user.activities {
@@ -343,8 +343,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     
                     // Create a button to exit the page
                     contentManager.currentOptions = [(2,"Exit",1)]
-                
-                // If the name isn't already used, then let them input the statistics for that activity
+                    
+                    // If the name isn't already used, then let them input the statistics for that activity
                 } else {
                     contentManager.currentDisplay = "Please input the statistics that will be used for activity \(contentManager.savedTextfieldInformation[0]).\n\nTo do this, write down the statistic name in the text field, and then exit the text field to add it to the table."
                     
@@ -371,7 +371,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Create a button for each of the 3 options, and 1 button to exit the page
             contentManager.currentOptions = [(6,"Option 1",1),(6,"Option 2",1),(6,"Option 3",1),(1,"Exit Menu",1)]
         case 6: // Finalise Activity Creation
-        
+            
             contentManager.currentDisplay = "Congratulations, you have successfully created the activity \(contentManager.savedTextfieldInformation[0]). This activity has \(contentManager.tableValues.count) statistics being tracked, and uses player storage Option \(sender.titleLabel!.text!.last!)"
             // Create Activity Here
             var newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], storageType: 0, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall Statistics", statistics: []), overallStatistics: [])
@@ -414,7 +414,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // Create a button for viewing the activity, and a button for viewing the players in the activity
             contentManager.currentOptions = [(21,"View Activity Details",1), (12,"View All Players",1)]
-                                             
+            
             switch useActivity.storageType {
                 // If the activity has groups and teams, make a button for each of those
             case 1: contentManager.currentOptions += [(8,"View Groups",1), (10,"View Teams",1)]
@@ -441,8 +441,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // Create a button to create a new group, and a button to exit the page
                 contentManager.currentOptions = [(23,"Create New Group",1),(7,"Exit",1)]
-            
-            // Otherwise display groups and let them select
+                
+                // Otherwise display groups and let them select
             } else {
                 contentManager.currentDisplay = "Please select the group that you want to view using the dropdown menu. Or press \"Create New Group\" to create a new group."
                 
@@ -515,7 +515,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                         useTeams = group.teams
                     }
                 }
-            // If the activity doesn't have groups, then just check regular activity teams
+                // If the activity doesn't have groups, then just check regular activity teams
             } else {
                 if activity.teams.isEmpty {
                     noTeams = true
@@ -530,8 +530,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // Create a button to exit the menu
                 contentManager.currentOptions = [(7,"Exit Menu",1)]
-            
-            // Otherwise let the user select the team
+                
+                // Otherwise let the user select the team
             } else {
                 contentManager.currentDisplay = "Select Team Screen"
                 
@@ -602,8 +602,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     let activity: Activity = user.activities[contentManager.selectedValues.activity]
                     let team: Team = activity.teams[contentManager.selectedValues.team]
                     displayPeople = team.people
-                
-                // Otherwise if the user is viewing the players for a team that is within a group, then get activity-group-team
+                    
+                    // Otherwise if the user is viewing the players for a team that is within a group, then get activity-group-team
                 } else {
                     let activity: Activity = user.activities[contentManager.selectedValues.activity]
                     let group: Group = activity.groups[contentManager.selectedValues.group]
@@ -669,7 +669,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     
                     // Create a button to input statistics for the player, and a button to input the player
                     contentManager.currentOptions = [(16,"Input Statistics",1), (15,"Finalise Player",1)]
-                    contentManager.tableValues = [("Placeholder","")]
+                    contentManager.tableValues = []
                 }
             }
             
@@ -689,7 +689,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.tableValues = []
             let activity: Activity = user.activities[contentManager.selectedValues.activity]
             for statistic in activity.overallStatistics {
-                contentManager.tableValues.append((title: statistic.name, value: String(statistic.value)))
+                if statistic.rule.isEmpty {
+                    contentManager.tableValues.append((title: statistic.name, value: String(statistic.value)))
+                }
             }
             
         case 17: // Player Created
@@ -703,13 +705,45 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // If the player is being created with stats then do that here
             if !contentManager.tableValues.isEmpty {
-                for (index,(title,value)) in contentManager.tableValues.enumerated() {
+                
+                // Store the index of auto rules and the index of the table
+                var recordedIndex: [Int] = []
+                var tableIndex: Int = 0
+                
+                // Run through the actual statistics
+                for (index,statistic) in activity.overallStatistics.enumerated() {
                     
-                    var statistic: Statistic = activity.overallStatistics[index]
-                    if value != "" {
-                        statistic.value = Float(value)!
+                    // If the statistic isn't an auto calculation then just add it
+                    if statistic.rule.isEmpty {
+                        var newStatistic: Statistic = statistic
+                        
+                        // Check if they gave it a value
+                        if contentManager.tableValues[tableIndex].value != "" {
+                            newStatistic.value = Float(contentManager.tableValues[tableIndex].value)!
+                        }
+                        
+                        // Add the statistic
+                        newPlayer.currentStatistics.statistics.append(newStatistic)
+                        
+                        // One value from the table has been used
+                        tableIndex += 1
+                        
+                    // If the rule is an automatic calcualtion then handle that later
+                    } else {
+                        recordedIndex.append(index)
                     }
-                    newPlayer.currentStatistics.statistics.append(statistic)
+                }
+
+                // Handle the automatic calculations
+                for index in recordedIndex {
+                    // Insert them to the correct point in the array
+                    newPlayer.currentStatistics.statistics.insert(activity.overallStatistics[index], at: index)
+                    
+                    // Get the calculation
+                    let rule: Calculation = newPlayer.currentStatistics.statistics[index].rule[0]
+                    
+                    // Set the value of this statistic to the result of the calculation
+                    newPlayer.currentStatistics.statistics[index].value = rule.run(inputPerson: newPlayer.currentStatistics)
                 }
                 
                 // Set the past periods statistics to reflect these initial input statistics
@@ -733,7 +767,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 // Update the players details
                 newPlayer.details.getFrom([team,group])
                 
-            // If the player is just in a group
+                // If the player is just in a group
             } else if contentManager.selectedValues.group != -1 {
                 // Add the player to the group
                 let group: Group = activity.groups[contentManager.selectedValues.group]
@@ -741,8 +775,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // Update the players details
                 newPlayer.details.getFrom(group)
-            
-            // If the player is just in a team
+                
+                // If the player is just in a team
             } else if contentManager.selectedValues.team != -1 {
                 // Add the player to the team
                 let team: Team = activity.teams[contentManager.selectedValues.team]
@@ -761,6 +795,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 19: break // Blank cases incase later I need to modify code
         case 20: break // Blank cases incase later I need to modify code
         case 21: // View Activity Details
+            saveGameData()
             // Get the activity
             let activity: Activity = user.activities[contentManager.selectedValues.activity]
             
@@ -769,14 +804,17 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             //MARK: Maybe put some more activity details here
             
-            
-            // Create a table that shows the statistics, and a button to exit the page
-            contentManager.currentOptions = [(0,"Statistics",9),(7,"Exit Menu",1)]
+            // Create a table that shows the statistics, a button to edit the statistics, and a button to exit the page
+            contentManager.currentOptions = [(0,"Statistics",9), (23,"Edit Statistics",1), (7,"Exit Menu",1)]
             
             // Showcase the statistics for the activity
             contentManager.tableValues = []
             for statistic in activity.overallStatistics {
-                contentManager.tableValues.append((title: statistic.name,value: String(statistic.value)))
+                if statistic.rule.isEmpty {
+                    contentManager.tableValues.append((title: statistic.name,value: String(statistic.value)))
+                } else {
+                    contentManager.tableValues.append((title: statistic.name,value: statistic.rule[0].toString()))
+                }
             }
             
         case 22: // View Player
@@ -788,7 +826,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             if sender.titleLabel!.text == "View Player" {
                 contentManager.selectedValues.player = contentManager.savedDropdownInformation
             }
-
+            
             // Figure out if player is from all players or just from group or team players
             if contentManager.selectedValues.group == -1 {
                 
@@ -798,7 +836,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     print(contentManager.selectedValues.player)
                     player = activity.people[contentManager.selectedValues.player]
                     
-                // If not in group but in team, then it's from activity-team
+                    // If not in group but in team, then it's from activity-team
                 } else {
                     let team: Team = activity.teams[contentManager.selectedValues.team]
                     player = team.people[contentManager.selectedValues.player]
@@ -810,7 +848,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     let group: Group = activity.groups[contentManager.selectedValues.group]
                     player = group.people[contentManager.selectedValues.player]
                     
-                // If in group and in team, then it's from activity-group-team
+                    // If in group and in team, then it's from activity-group-team
                 } else {
                     let group: Group = activity.groups[contentManager.selectedValues.group]
                     let team: Team = group.teams[contentManager.selectedValues.team]
@@ -823,20 +861,240 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // Create a button to exit the menu
             contentManager.currentOptions = [(7,"Exit Menu",1)]
-        case 23: break
-        case 24: break
-        case 25: break
-        case 26: break
-        case 27: break
-        case 28: break
-        case 29: break
-        case 30: break
-        case 31: break
-        case 32: break
-        case 33: break
-        case 34: break
-        case 35: break
-        case 36: break
+        case 23: // Edit Activity Statistics
+            contentManager.currentDisplay = "What do you want to edit?"
+            contentManager.currentOptions = [(24,"Change Base Values",1), (26,"Add New Statistic",1), (30,"Add Calculation",1), (21,"Exit Menu",1)]
+        case 24: // Change Base Values
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            
+            contentManager.currentDisplay = "Edit the base values using the below text field"
+            
+            // Create a tbl-dropdown-textField for the statistic, a button to input the statistics, and a button to exit the page
+            contentManager.currentOptions = [(0,"Statistic",6), (25,"Finalise Statistics",1), (21,"Exit Menu",1)]
+            
+            // Display the statistic values
+            contentManager.tableValues = []
+            for statistic in activity.overallStatistics {
+                if statistic.rule.isEmpty {
+                    contentManager.tableValues.append((title: statistic.name, value: String(statistic.value)))
+                }
+            }
+        case 25: // Base Values Finalised
+            var changeNumber: Int = 0
+            var changeList: [String] = []
+            
+            // Get activity
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            
+            // Run through the statistics
+            var tableIndex: Int = 0
+            for (index,statistic) in activity.overallStatistics.enumerated() {
+                if statistic.rule.isEmpty {
+                    // Change the values to match the table values
+                    if activity.overallStatistics[index].value != Float(contentManager.tableValues[tableIndex].value)! {
+                        
+                        // Record that the change occured
+                        changeList.append("\(statistic.name): \(activity.overallStatistics[index].value) -> \(Float(contentManager.tableValues[tableIndex].value)!)")
+                        changeNumber += 1
+                        
+                        // Perform the change
+                        activity.overallStatistics[index].value = Float(contentManager.tableValues[tableIndex].value)!
+                        
+                    }
+                    
+                    // Move to the next spot in the table
+                    tableIndex += 1
+                }
+            }
+            
+            // If it's not one value, then add an s to value to make it values
+            var plural: String = ""
+            if changeNumber != 1 {
+                plural = "s"
+            }
+            
+            // Display the changes to the user in a table view
+            contentManager.currentDisplay = "You have changed \(changeNumber) base value\(plural)."
+            if changeNumber != 0 {
+                contentManager.currentOptions = [(0,"Statistics",9), (21,"Exit Menu",1)]
+                contentManager.tableValues = []
+                for text in changeList {
+                    contentManager.tableValues.append((text,""))
+                }
+            } else {
+                contentManager.currentOptions = [(21,"Exit Menu",1)]
+            }
+        case 26: // Add New Statistic
+            contentManager.currentDisplay = "Please input any new statistics to this activity using the text field"
+            
+            // Create a tbl-textField for statistics, a button for inputing the statistics, and a button to exit the menu
+            contentManager.currentOptions = [(0,"Statistic",8),(27,"Finalise Statistics",1),(21,"Exit Menu",1)]
+            
+            // Make the table start out with a placeholder statistic that has no associated value
+            contentManager.tableValues = [("Placeholder","")]
+        case 27: // Add Base Values
+            contentManager.currentDisplay = "Please add any basic statistic values to the new statistics."
+            
+            // Create a tbl-dropdown-textField for the statistic, a button to input the statistics, and a button to exit the page
+            contentManager.currentOptions = [(0,"Statistic",6), (28,"Finalise Statistics",1), (21,"Exit Menu",1)]
+            
+            // Set all values to start with 0 as the basic
+            for (index,_) in contentManager.tableValues.enumerated() {
+                contentManager.tableValues[index].value = "0"
+            }
+        case 28: // Confirm Input Statistics
+            contentManager.currentDisplay = "Are you certain that you would like to add these new statistics to your activity?"
+            contentManager.currentOptions = [(29,"Yes",1), (21,"No",1)]
+        case 29: // Input Statistics
+            // Get the activity
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            
+            // Run through each activity
+            for (title,value) in contentManager.tableValues {
+                
+                // Make sure there's no duplicate statistics
+                if activity.overallStatistics.searchNamesFor(input: title) == -1 {
+                    
+                    let newStatistic: Statistic = Statistic(name: title, value: Float(value)!, rule: [])
+                    // Add the statistic
+                    activity.addStatistic(newStatistic)
+                }
+            }
+            contentManager.currentDisplay = "The new statistics have been added to your activity."
+            contentManager.currentOptions = [(21,"Exit Menu",1)]
+
+        case 30: // Confirm Automatic Calculation
+            contentManager.currentDisplay = "Are you sure you wish to create an automatic calculation?"
+            contentManager.currentOptions = [(31,"Yes",1),(21,"No",1)]
+        case 31: // Check Automatic Calculation
+            clearTextFieldData()
+            contentManager.currentDisplay = "To create an automatic calculation you will need 3 inputs:\n\n1- The first value, this can be either a statistic from the activity, or a number\n\n2- The operator, being either a +, -, * or / \n\n3- The second value, this can be either a statistic from the activity or a number\n\nYour input should follow the format \"Value1 Operator Value2\". Once you're certain you know how to make this automatic calculation, please press \"Continue\""
+            contentManager.currentOptions = [(32,"Continue",1),(21,"Exit",1)]
+        case 32: // Create Automatic Calculation
+            
+            contentManager.currentOptions = [(0,"Statistics",9), (0,"Calculation",2), (33,"Input Automatic Calculation",1)]
+            
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            
+            // Display all of the statistics to help the player make their rule
+            contentManager.tableValues = []
+            for statistic in activity.overallStatistics {
+                
+                // Note that this one doesn't use "if rule.isEmpty()
+                // This is so you can use more complex rules such as calculating kills + assists as one calculation and then making another rule that does (kills+assists) / deaths for the proper kda
+                
+                contentManager.tableValues.append((statistic.name,""))
+            }
+        case 33: // Check Automatic Calculation
+            var ruleWords: [String] = contentManager.savedTextfieldInformation[0].components(separatedBy: " ")
+            
+            // Perform checks on the players input
+            let lengthCheck: Bool = (ruleWords.count == 3)
+            let primaryCheck: Bool = ruleWords[0].isValidComponent()
+            let operatorCheck: Bool = ruleWords[1].isValidOperator()
+            let secondaryCheck: Bool = ruleWords[2].isValidComponent()
+            
+            // If it failed any of the checks then tell them what they did wrong
+            if !lengthCheck || !primaryCheck || !operatorCheck || !secondaryCheck {
+                contentManager.currentDisplay = "Oh dear, there seem to be some errors in your code:\n\n"
+                
+                if !lengthCheck {
+                    contentManager.currentDisplay += "Your calculation contains more than 3 words\n\n"
+                }
+                if !primaryCheck {
+                    contentManager.currentDisplay += "Your first value is not a number or a statistic\n\n"
+                }
+                if !operatorCheck {
+                    contentManager.currentDisplay += "Your operator is not one of the permissable operators\n\n"
+                }
+                if !secondaryCheck {
+                    contentManager.currentDisplay += "Your second value is not a number or a statistic\n\n"
+                }
+                
+                contentManager.currentDisplay += "Please fix these problems if you wish to create the calculation."
+                
+                // Let them either give up or try again
+                contentManager.currentOptions = [(33,"Try Again",1), (21,"Give Up",1)]
+            } else {
+                contentManager.currentDisplay = "Let's confirm that your rule is correct:\n\n"
+                
+                contentManager.currentDisplay += "First Value: \(ruleWords[0])"
+                if ruleWords[0].isFloat() {
+                    contentManager.currentDisplay += " (Number)\n"
+                } else {
+                    contentManager.currentDisplay += " (Statistic)\n"
+                }
+                
+                contentManager.currentDisplay += "Operator: \(ruleWords[1]) (\(ruleWords[1].described()))\n"
+                
+                contentManager.currentDisplay += "Second Value: \(ruleWords[2])"
+                if ruleWords[2].isFloat() {
+                    contentManager.currentDisplay += " (Number)\n\n"
+                } else {
+                    contentManager.currentDisplay += " (Statistic)\n\n"
+                }
+                contentManager.currentDisplay += "Does this look correct to you?"
+                contentManager.currentOptions = [(34,"Yes",1), (32,"No",1)]
+            }
+        case 34: // Get Automatic Calculation Name
+            if contentManager.savedTextfieldInformation.count == 2 {
+                contentManager.savedTextfieldInformation.removeLast()
+            }
+            contentManager.currentDisplay = "What do you want to name the statistic that will get it's value from this automatic calculation?"
+            
+            // Create a text field for the name, a button to input the name, and a button to exit the page
+            contentManager.currentOptions = [(0,"Statistic Name", 2),(35,"Create Calculation",1)]
+            
+        case 35: // Confirm Automatic Calculation Name -> Confirm Creation
+            
+            // Check that it's name isn't blank
+            if contentManager.savedTextfieldInformation[0] == "" {
+                contentManager.currentDisplay = "Unfortunately, you cannot give it the name of \" \". That would just not work with the rest of my code. Please give it an actual name"
+                
+                // Create a button to exit the page
+                contentManager.currentOptions = [(34,"Exit",1)]
+                
+            // If the name isn't blank, ensure that the name isn't already being used
+            } else {
+                var dupeName: Bool = false
+                for statistic in user.activities[contentManager.selectedValues.activity].overallStatistics {
+                    if statistic.name == contentManager.savedTextfieldInformation[1] {
+                        dupeName = true
+                    }
+                }
+                
+                // If name is already used then have them select a new name
+                if dupeName {
+                    contentManager.currentDisplay = "Unfortunately, you cannot give a statistic a name that's already been used. Please give it a different name"
+                    
+                    // Create a button to exit the page
+                    contentManager.currentOptions = [(34,"Exit",1)]
+                    
+                    // If the name isn't already used, then double check that they want to create it
+                } else {
+                    contentManager.currentDisplay = "Are you absolutely sure that you want to create the automatic calculation with rule \"\(contentManager.savedTextfieldInformation[0])\" and the name \"\(contentManager.savedTextfieldInformation[1])\"?"
+                    
+                    // Create buttons to finalise the calculation or to stop making the calculation
+                    contentManager.currentOptions = [(36,"Yes",1), (34,"Change Name",1), (21,"Exit Menu",1)]
+                }
+            }
+        case 36: // Perform Creation
+            // Get the users code
+            let wordSplit: [String] = contentManager.savedTextfieldInformation[0].components(separatedBy: " ")
+            
+            // Make the calculation from the code
+            let newCalculation: Calculation = Calculation(primaryTerm: wordSplit[0], operation: wordSplit[1].toOperator(), secondaryTerm: wordSplit[2])
+            
+            // Make the statistic using the calculation and name
+            let newStatistic: Statistic = Statistic(name: contentManager.savedTextfieldInformation[1], value: 0, rule: [newCalculation])
+            
+            // Add the statistic to the activity
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            activity.addStatistic(newStatistic)
+            
+            contentManager.currentDisplay = "Your automatic calculation has been successfully added to your activity."
+            contentManager.currentOptions = [(21,"Exit Menu",1)]
+            
         case 37: break
         case 38: break
         case 39: break
@@ -1193,7 +1451,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // Add it to the screen
                 view.addSubview(tableView)
-                yOffset += 240
+                yOffset += 180
                 
                 // Dropdown label
                 let label = UILabel()
@@ -1446,8 +1704,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         // Get the text from the top of the screen (I know it's going to be [0] because my code has no elements in the view until I add the basic text
         let label = view.subviews[0] as! UILabel
         
-        // Now, for two very specific text fields, when you're inputting statistic values, the values must be Floats, so MAKE SURE TO ADD TO THIS IF STATEMENT WHEN YOU NEED ONLY NUMBERS TO BE INPUT
-        if label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." || label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." {
+        // Now, for four very specific text fields, when you're inputting statistic values, the values must be Floats, so MAKE SURE TO ADD TO THIS IF STATEMENT WHEN YOU NEED ONLY NUMBERS TO BE INPUT
+        if label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." || label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." || label.text == "Edit the base values using the below text field" || label.text == "Please add any basic statistic values to the new statistics." {
             
             // So basically it checks if the text can be turned into a float. If it can then no problems
             if let _: Float = Float(newText) {
@@ -1482,6 +1740,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     @objc func addTableValues(_ sender: UIButton) {
         print("addTableValues()")
         
+        let activity: Activity = user.activities[contentManager.selectedValues.activity]
+        
         // The table will be [1] since the creation order goes "Top Text -> ***Table*** -> Text Field -> Button"
         let table = view.subviews[1] as! UITableView
         
@@ -1490,18 +1750,65 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         
         // If there is a proper text input
         if text.text! != "" {
+            let label = view.subviews[0] as! UILabel
             
-            // If there's no values then just set the values
-            if contentManager.tableValues.isEmpty {
+            // If this is the special case of adding new statistics to a pre-existing activity then handle duplicates
+            if label.text == "Please input any new statistics to this activity using the text field" {
+            
+                var duplicateName: Bool = false
+                
+                // Check each of the statistics
+                for (title,_) in contentManager.tableValues {
+                    
+                    // If the name already is being used then don't add the new statistic
+                    if title.lowercased() == text.text?.lowercased() {
+                        duplicateName = true
+                    }
+                }
+                
+                // Check it against the existing statistics
+                for statistic in activity.overallStatistics {
+                    if statistic.name.lowercased() == text.text?.lowercased() {
+                        duplicateName = true
+                    }
+                }
+                
+                // If the name isn't a duplicate then add the new name
+                if !duplicateName {
+                    if contentManager.tableValues[0] == ("Placeholder","") {
+                        contentManager.tableValues = [(title: text.text!, value: "")]
+                    } else {
+                        contentManager.tableValues.append((title: text.text!, value: ""))
+                    }
+                }
+                
+                
+            // If there's no values then just set the value
+            } else if contentManager.tableValues.isEmpty {
                 contentManager.tableValues = [(title: text.text!, value: "")]
                 
             // If there's a placeholder then just set the value
             } else if contentManager.tableValues[0] == ("Placeholder","") {
                 contentManager.tableValues = [(title: text.text!, value: "")]
             
-            // Otherwise add the value onto the table
+            // If there are just regular values
             } else {
-                contentManager.tableValues.append((title: text.text!, value: ""))
+                
+                var duplicateName: Bool = false
+                
+                // Check each of the statistics
+                for (title,_) in contentManager.tableValues {
+                    
+                    // If the name already is being used then don't add the new statistic
+                    if title.lowercased() == text.text?.lowercased() {
+                        duplicateName = true
+                    }
+                }
+                
+                // If the name isn't a duplicate then add the new name
+                if !duplicateName {
+                    contentManager.tableValues.append((title: text.text!, value: ""))
+                }
             }
             
             // And then refresh the table
@@ -1539,10 +1846,28 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         return cell
     }
 
+    // Function that is called when a tableView position gets clicked
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard indexPath.row < contentManager.tableValues.count else { return }
         
+        // Set the position
         contentManager.selectedDropdownIndex = indexPath.row
+        
+        // Update the text field
         updateTextFieldWithSelectedValue()
+        
+        // Update the dropdown
+        updateSelectedDropdownPosition()
+    }
+    
+    
+    // Function that is called when a tableView position gets updated, and makes a dropdown move to the tapped position
+    func updateSelectedDropdownPosition() {
+        for subview in view.subviews {
+            if subview is UIPickerView {
+                let picker = subview as! UIPickerView
+                picker.selectRow(contentManager.selectedDropdownIndex, inComponent: 0, animated: true)
+            }
+        }
     }
 }

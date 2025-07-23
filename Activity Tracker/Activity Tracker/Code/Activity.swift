@@ -6,10 +6,6 @@ struct User: Codable {
     var activities: [Activity]
     var details: UserDetails
     var playerCount: Int
-    
-    func quickPrint() -> String {
-        return "\(details.username) - Activities: \(activities.count)"
-    }
 }
 
 struct UserDetails: Codable {
@@ -27,12 +23,10 @@ class Activity: Codable {
     
     // Array of just the statistics with no values associated
     var overallStatistics: [Statistic]
-    
+
     // Function to assign a new statistic to the activity
-    func addStatistic(name: String, value: Float, rule: [Calculation]) {
-        
-        // Create and add the statistic to the statistics
-        let newStatistic: Statistic = Statistic(name: name, value: value, rule: rule)
+    func addStatistic(_ newStatistic: Statistic) {
+        // Add the statistic to the activity
         overallStatistics.append(newStatistic)
         
         // Check if this statistic is an automatic calculation statistic
@@ -41,7 +35,10 @@ class Activity: Codable {
             for (index,person) in people.enumerated() {
                 
                 // Add the statistic
-                people[index].currentStatistics.statistics.append(newStatistic)
+                person.currentStatistics.statistics.append(newStatistic)
+                
+                // Run the actual operation
+                person.currentStatistics.statistics[person.currentStatistics.statistics.count - 1].value = newStatistic.rule[0].run(inputPerson: person.currentStatistics)
                 
                 // Run through their past data and add the statistic
                 for (key,_) in person.pastPeriods {
@@ -49,6 +46,7 @@ class Activity: Codable {
                     // StatisticHolder is a struct, so I can't make this cleaner
                     person.pastPeriods[key]?.statistics.append(newStatistic)
                     
+                    // Run the actual operation onto the past periods data
                     person.pastPeriods[key]?.statistics[(person.pastPeriods[key]?.statistics.count)! - 1].value = newStatistic.rule[0].run(inputPerson: person.pastPeriods[key]!)
                 }
             }
@@ -127,6 +125,47 @@ class Person: Codable {
         self.details = details
         self.currentStatistics = currentStatistics
         self.pastPeriods = pastPeriods
+    }
+    
+    func calculateCurrentStatistics() {
+        // Run through all past periods
+        for (key,pastStatistics) in pastPeriods {
+            
+            // Get every statistic from those periods
+            for (statistic) in pastStatistics.statistics {
+                
+                // As long as there isn't a rule for the statistic, add it to the current value
+                if statistic.rule.isEmpty {
+                    let statIndex: Int = currentStatistics.statistics.searchNamesFor(input: statistic.name)
+                    if statIndex != -1 {
+                        currentStatistics.statistics[statIndex].value += statistic.value
+                    }
+                }
+            }
+        }
+        
+        // Run through all the statistics for any rules
+        for (index,statistic) in currentStatistics.statistics.enumerated() {
+            if !statistic.rule.isEmpty {
+                // Get the rule
+                let calculation: Calculation = currentStatistics.statistics[index].rule[0]
+                
+                // Set the value using the rule
+                currentStatistics.statistics[index].value = calculation.run(inputPerson: currentStatistics)
+                
+                // There can never be problems with this rule in terms of there being a second rule that uses another rule being used before it
+                // Explanation - Let's say we have autocalc1 and autocalc2
+                //
+                // autocalc1 is statistic1 + statistic2
+                // autocalc2 is autocalc1 * statistic3
+                //
+                // You might think that there could be problems since what if autocalc2 is set before we set autocalc1
+                // But that can't ever happen since the array of statistics doesn't change it's order.
+                // autocalc2 must be created after autocalc1, since you can't reference a statistic that doesn't exist yet
+                // And since they always remain in the same order, the autocalc2 will always be made after autocalc1
+                // And therefore we will never un into problems caused by the generation of autocalcs
+            }
+        }
     }
     
     // Function to display a player
@@ -254,6 +293,10 @@ class Calculation: Codable {
         self.secondaryTerm = secondaryTerm
     }
     
+    func toString() -> String {
+        return "\(primaryTerm) \(operation.toString()) \(secondaryTerm)"
+    }
+    
     func run(inputPerson: StatisticHolder) -> Float {
         // Declare the two values to work with
         var primaryValue: Float?
@@ -299,7 +342,12 @@ class Calculation: Codable {
         case .multiply:
             outputValue = primaryValue! * secondaryValue!
         case .divide:
-            outputValue = primaryValue! / secondaryValue!
+            // For division make sure we don't ever get a divide by 0 error
+            if secondaryValue != 0 {
+                outputValue = primaryValue! / secondaryValue!
+            } else {
+                outputValue = 0
+            }
         }
         
         // Return the value
@@ -310,4 +358,91 @@ class Calculation: Codable {
 // An operation means math stuff
 enum Operation: Codable {
     case add, subtract, multiply, divide
+    
+    func toString() -> String {
+        switch self {
+        case .add: return "+"
+        case .subtract: return "-"
+        case .multiply: return "*"
+        case .divide: return "/"
+        }
+    }
+}
+
+extension String {
+    // Function to validate components of an automatic calculation
+    func isValidComponent() -> Bool {
+        
+        // First check if the input is a number
+        if self.isFloat() {
+            return true
+        }
+        
+        // Check if the input is a statistic
+        if user.activities[contentManager.selectedValues.activity].overallStatistics.searchNamesFor(input: self) != -1 {
+            return true
+        }
+        
+        // If none of those worked, then the rule is a failure on this condition
+        return false
+    }
+    
+    // Function to check if a string can be turned into a float
+    func isFloat() -> Bool {
+        
+        // If the value can be turned into a float
+        if let value: Float = Float(self) {
+            return true
+        }
+        
+        return false
+    }
+    
+    // Function to check if a string is a valid operator for an automatic calculation
+    func isValidOperator() -> Bool {
+        return ["+","-","/","*","x"].contains(self)
+    }
+    
+    // Function to convert an operator symbol into a word
+    func described() -> String {
+        switch self {
+        case "+": return "Add"
+        case "-": return "Subtract"
+        case "/": return "Divide"
+        case "*", "x": return "Multiply"
+        default: return ""
+        }
+    }
+    
+    // Function to convert an operator symbol into a word
+    func toOperator() -> Operation {
+        switch self {
+        case "+": return .add
+        case "-": return .subtract
+        case "/": return .divide
+        case "*", "x": return .multiply
+        default: return .add
+        }
+    }
+}
+
+// Used to allow .lowercased() to work on arrays
+extension [String] {
+    func lowercased() -> [String] {
+        var returnArray: [String] = []
+        for value in self {
+            returnArray.append(value.lowercased())
+        }
+        return returnArray
+    }
+}
+
+extension [(String, String)] {
+    func lowercased() -> [(String,String)] {
+        var returnArray: [(String,String)] = []
+        for (value1,value2) in self {
+            returnArray.append((value1.lowercased(),value2))
+        }
+        return returnArray
+    }
 }

@@ -118,7 +118,7 @@ func presentCurrentSaves() -> [String] {
     var returnArray: [String] = []
     let savedStates: [User] = bulkGetStates()
     for player in savedStates {
-        returnArray.append(user.quickPrint())
+        returnArray.append(player.details.username)
     }
     return returnArray
 }
