@@ -23,8 +23,8 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" fixedFrame="YES" image="book.closed" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="Vxt-2a-qhu">
-                                <rect key="frame" x="88" y="312.33333333333337" width="216" height="205"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" fixedFrame="YES" image="Screenshot 2025-07-29 at 12.03.55 pm" translatesAutoresizingMaskIntoConstraints="NO" id="oaU-EX-DFX">
+                                <rect key="frame" x="23" y="107" width="354" height="772"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
                         </subviews>
@@ -38,7 +38,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="book.closed" catalog="system" width="115" height="128"/>
+        <image name="Screenshot 2025-07-29 at 12.03.55 pm" width="424" height="760"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>

@@ -182,6 +182,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
         case -15: // Create Account Confirmation
             
+            
             // Check if the users username and password work with the program
             if acceptableAccount(input: contentManager.savedTextfieldInformation) {
                 
@@ -260,7 +261,19 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentOptions = [(0,"Begin The Program",1)]
             
             // Some blank cases just incase I ever need to add something to the login phase or the tutorial phase
-        case -9: break
+        case -9: // Log Out
+            
+            // Save the data to file
+            saveGameData()
+            
+            contentManager.currentDisplay = "You have successfully logged out of your account \(user.details.username), and all data has successfully been saved to file."
+            
+            // Reset the user to the basic state
+            user = User(activities: [], details: UserDetails(username: "", password: ""), playerCount: 0, groupCount: 0, teamCount: 0)
+            
+            // Reset the contentManager to the basic state but with the currentDisplay kept the same
+            contentManager = ContentManager(currentOptions: [(-20, "Begin Program", 1)], currentDisplay: contentManager.currentDisplay, savedTextfieldInformation: [], savedIntegers: [], savedDropdownInformation: 0, displaySeperate: [], repeatedString: "", returnPoint: 0, exitString: "", storedDropdowns: [], savedText: [], selectedValues: StoredActivity(activity: -1, team: -1, group: -1, player: -1), tableValues: [], selectedDropdownIndex: 0, selectedRow: 0)
+            
         case -8: break
         case -7: break
         case -6: break
@@ -287,7 +300,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentDisplay = "Hello \(user.details.username), what do you want to do?"
             
             // Create a button for viewing activities, a button to modify settings, and a button for logging out of the account
-            contentManager.currentOptions = [(1,"View Activities",1),(0,"Modify System Settings",1),(0,"Log Out",1)]
+            contentManager.currentOptions = [(1,"View Activities",1),(0,"Modify System Settings",1),(-9,"Log Out",1)]
             saveGameData()
         case 1: // View Activities
             clearTextFieldData()
@@ -1098,15 +1111,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             contentManager.currentOptions = [(0,"Statistics",9), (0,"Calculation",2), (33,"Input Automatic Calculation",1)]
             
+            clearTextFieldData()
+            
             let activity: Activity = user.activities[contentManager.selectedValues.activity]
             
             // Display all of the statistics to help the player make their rule
             contentManager.tableValues = []
             for statistic in activity.overallStatistics {
-                
-                // Note that this one doesn't use "if rule.isEmpty()
-                // This is so you can use more complex rules such as calculating kills + assists as one calculation and then making another rule that does (kills+assists) / deaths for the proper kda
-                
                 contentManager.tableValues.append((statistic.name,""))
             }
         case 33: // Check Automatic Calculation
@@ -1117,7 +1128,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             let primaryCheck: Bool = ruleWords[0].isValidComponent()
             let operatorCheck: Bool = ruleWords[1].isValidOperator()
             let secondaryCheck: Bool = ruleWords[2].isValidComponent()
-            let crashCheck: Bool = (ruleWords[1] == "/" && ruleWords[2] == "0")
+            let crashCheck: Bool = !(ruleWords[1] == "/" && ruleWords[2] == "0")
             
             // If it failed any of the checks then tell them what they did wrong
             if !lengthCheck || !primaryCheck || !operatorCheck || !secondaryCheck || !crashCheck {
@@ -1136,13 +1147,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     contentManager.currentDisplay += "Your second value is not a number or a statistic\n\n"
                 }
                 if !crashCheck {
-                    contentManager.currentDisplay += "You are dividing a value by 0... Are you seriously trying to break my code with a divide by 0? That's an insanely lame thing to do...\n\n"
+                    contentManager.currentDisplay += "You are dividing a value by 0...\n\n"
                 }
                 
                 contentManager.currentDisplay += "Please fix these problems if you wish to create the calculation."
                 
                 // Let them either give up or try again
-                contentManager.currentOptions = [(33,"Try Again",1), (21,"Give Up",1)]
+                contentManager.currentOptions = [(32,"Try Again",1), (21,"Give Up",1)]
             } else {
                 contentManager.currentDisplay = "Let's confirm that your rule is correct:\n\n"
                 
