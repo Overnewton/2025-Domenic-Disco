@@ -670,9 +670,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // Make the exit button go to the right page
                 switch sender.titleLabel!.text {
-                case "View All Players": contentManager.currentOptions.append((7,"Exit",1))
-                case "View All Players In Group", "View Players For Group": contentManager.currentOptions.append((9,"Exit",1))
-                case "View Players For Team": contentManager.currentOptions.append((11,"Exit",1))
+                case "View All Players": contentManager.currentOptions += [(52,"Search Players",1),(7,"Exit",1)]
+                case "View All Players In Group", "View Players For Group": contentManager.currentOptions += [(52,"Search Group",1), (9,"Exit",1)]
+                case "View Players For Team": contentManager.currentOptions += [(52,"Search Team",1), (11,"Exit",1)]
                 default: break
                 }
                 
@@ -874,7 +874,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
             
             // Display all of the players past values
-            contentManager.tableValues = [("Current Values","")]
+            contentManager.tableValues = [("Overall Total","")]
             for (_,pastPeriod) in player!.pastPeriods {
                 contentManager.tableValues.append((title: pastPeriod.description, value: ""))
             }
@@ -914,19 +914,27 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
             
             
-            // TODO: ADD FUNCTIONALITY HERE TO ACTUALLY DISPLAY THE STATISTICS
+            // TODO: HEY ADD AND TEST THE STUFF HERE
             
+            var useStatistics: StatisticHolder?
             // If they selected the first value then they want to view current overall
             if contentManager.selectedDropdownIndex == 0 {
-                player!.currentStatistics
-            
-            // If they selected any other value then they're viewing past statistics
+                useStatistics = player!.currentStatistics
+                
+                // If they selected any other value then they're viewing past statistics
             } else {
-                player!.pastPeriods[contentManager.selectedDropdownIndex - 1]
+                useStatistics = player!.pastPeriods[contentManager.selectedDropdownIndex - 1]
             }
             
+            contentManager.currentDisplay = ""
+            contentManager.currentOptions = [(0,"Statistics",9), (22,"Exit Menu",1)]
             
-            
+            // Showcase the statistics for the activity
+            contentManager.tableValues = []
+            for statistic in useStatistics!.statistics {
+                // Since this is showcasing pure values, no need to check for rules since the rules already have the values calculated
+                contentManager.tableValues.append((title: statistic.name,value: String(statistic.value)))
+            }
             
         case 20: break
         case 21: // View Activity Details
@@ -967,8 +975,6 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // If not in group and not in team then it's just from activity
                 if contentManager.selectedValues.team == -1 {
-                    print(activity.people)
-                    print(contentManager.selectedValues.player)
                     player = activity.people[contentManager.selectedValues.player]
                     
                     // If not in group but in team, then it's from activity-team
@@ -1125,17 +1131,36 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // Perform checks on the players input
             let lengthCheck: Bool = (ruleWords.count == 3)
-            let primaryCheck: Bool = ruleWords[0].isValidComponent()
-            let operatorCheck: Bool = ruleWords[1].isValidOperator()
-            let secondaryCheck: Bool = ruleWords[2].isValidComponent()
-            let crashCheck: Bool = !(ruleWords[1] == "/" && ruleWords[2] == "0")
+            
+            var primaryCheck: Bool = false
+            var operatorCheck: Bool = false
+            var secondaryCheck: Bool = false
+            var crashCheck: Bool = true
+            
+            // Handle if the user hasn't input enough words
+            if ruleWords.count > 0 {
+                primaryCheck = ruleWords[0].isValidComponent()
+                
+                if ruleWords.count > 1 {
+                    operatorCheck = ruleWords[1].isValidOperator()
+                    
+                    if ruleWords.count > 2 {
+                        secondaryCheck = ruleWords[2].isValidComponent()
+                        crashCheck = !(ruleWords[1] == "/" && ruleWords[2] == "0")
+                    }
+                }
+            }
+            
+            
+            
+            
             
             // If it failed any of the checks then tell them what they did wrong
             if !lengthCheck || !primaryCheck || !operatorCheck || !secondaryCheck || !crashCheck {
                 contentManager.currentDisplay = "Oh dear, there seem to be some errors in your code:\n\n"
                 
                 if !lengthCheck {
-                    contentManager.currentDisplay += "Your calculation contains more than 3 words\n\n"
+                    contentManager.currentDisplay += "Your calculation is either more or less than 3 words\n\n"
                 }
                 if !primaryCheck {
                     contentManager.currentDisplay += "Your first value is not a number or a statistic\n\n"
@@ -1306,7 +1331,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                         // If they match the selected dropdown segment then they're the one that got selected
                         if indexCount == contentManager.selectedDropdownIndex {
                             user.activities[contentManager.selectedValues.activity].groups.last?.people.append(player)
-                        // Otherwise we must try again and see if the next one matches
+                            // Otherwise we must try again and see if the next one matches
                         } else {
                             indexCount += 1
                         }
@@ -1445,7 +1470,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                             } else {
                                 user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].teams.last?.people.append(player)
                             }
-                        // Otherwise we must try again and see if the next one matches
+                            // Otherwise we must try again and see if the next one matches
                         } else {
                             indexCount += 1
                         }
@@ -1472,7 +1497,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 44: // Finalise Group 100%
             contentManager.currentDisplay = "Your group has successfully been created."
             saveGameData()
-            // Create a button fo rexiting the menu
+            // Create a button for exiting the menu
             contentManager.currentOptions = [(7,"Exit Menu",1)]
             
             // If it was sent here from a group then send them back to the group
@@ -1490,11 +1515,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             var player: Person?
             
             // Set up the relevant variables
-            if contentManager.selectedValues.group != -1 {
-                group = activity.groups[contentManager.selectedValues.group]
-                team = group!.teams[contentManager.selectedValues.team]
-            } else {
-                team = activity.teams[contentManager.selectedValues.team]
+            if contentManager.selectedValues.team != -1 {
+                if contentManager.selectedValues.group != -1 {
+                    group = activity.groups[contentManager.selectedValues.group]
+                    team = group!.teams[contentManager.selectedValues.team]
+                } else {
+                    team = activity.teams[contentManager.selectedValues.team]
+                }
             }
             
             // Figure out whether it's team statistics or player statistics
@@ -1533,23 +1560,24 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentDisplay = "Please input the name that you will be giving to this set of statistics.\n\nHere are some examples: \n28/7/25 - Training\nMatch - 28/7"
             contentManager.currentOptions = [(0,"Event Name",2),(47,"Input Name",1)]
             
-        case 47: // Check If Adding Statistics -> 47 / 48
+        case 47: // Check If Adding Statistics
             
             // Add 1 to the index that we are checking in the array
             contentManager.savedIntegers[0] += 1
             
-            // Get the player that you're meant to be modifying now
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
-            let playerID: Int = contentManager.savedIntegers[contentManager.savedIntegers[0]]
-            let playerIndex: Int = activity.searchPlayersFor(ID: playerID)
-            let player: Person = activity.people[playerIndex]
-            
             // Check if all the values have been viewed yet
-            if contentManager.savedIntegers[0] == contentManager.savedIntegers.count {
+            if contentManager.savedIntegers[0] != contentManager.savedIntegers.count {
+                
+                // Get the player that you're meant to be modifying now
+                let activity: Activity = user.activities[contentManager.selectedValues.activity]
+                let playerID: Int = contentManager.savedIntegers[contentManager.savedIntegers[0]]
+                let playerIndex: Int = activity.searchPlayersFor(ID: playerID)
+                let player: Person = activity.people[playerIndex]
+                
                 contentManager.currentDisplay = "You are now adding statistics for player \(contentManager.savedIntegers[0]), \(player.details.name). If they were absent from this event then please press \"No Statistics Available\""
-                contentManager.currentOptions = [(47,"Add Statistics",1), (50,"No Statistics Available",1)]
+                contentManager.currentOptions = [(48,"Add Statistics",1), (50,"No Statistics Available",1)]
             } else {
-                contentManager.currentDisplay = "You have successfully added a new set of statistics to your players. Please press the \"Finalise Statistics\" button to allow any calculations to be performed."
+                contentManager.currentDisplay = "Your data input for this activity has been completed!\n\nYou have successfully added this new set of statistics to your players. Now press the \"Finalise Statistics\" button to allow any automatic calculations to be performed, and for the statistics to sync with your save file."
                 contentManager.currentOptions = [(51,"Finalise Statistics",1),]
             }
         case 48: // Add Statistics Screen
@@ -1628,22 +1656,289 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // Run through each of the people
             for playerIndex in contentManager.savedIntegers {
-                activity.people[playerIndex].currentStatistics.statistics = activity.overallStatistics
+                activity.people[playerIndex].calculateCurrentStatistics()
             }
             
-            // Reinitialise the statistics for the activity
-            activity.combined.statistics = activity.overallStatistics
-            
-            // Calculate the total statistics
+            // Calculate the total statistics for the overall activity
             activity.calculateCurrentStatistics()
             
             contentManager.currentDisplay = "All calculations have been performed!"
-        case 52: break
-        case 53: break
-        case 54: break
-        case 55: break
-        case 56: break
-        case 57: break
+            
+            // Let the player exit to the menu
+            contentManager.currentOptions = [(7,"Exit Menu",1)]
+            
+            // Save the data since it's now corrected
+            saveGameData()
+        case 52:
+            contentManager.savedTextfieldInformation = [sender.titleLabel!.text!]
+            
+            contentManager.currentDisplay = "Would you like to perform a Specific Search or a General Search?\n\nSpecific Search means you will be able to set very specific constraints, whereas a General Search will mostly just sort values or return singular players"
+            
+            // Let the player exit to the menu
+            contentManager.currentOptions = [(53,"Specific",1)]
+            
+            
+            
+            // switch contentManager.savedTextfieldInformation[0] {
+            // case "Search Players":
+            // case "Search Group":
+            // case "Search Team":
+            // default: break
+            // }
+            
+        case 53:
+            contentManager.currentDisplay = "Specific Searches can use multiple requirements at once, you simply write multiple general searches and the acceptable players will be repeatedly reduced.\n\nYour requirements can be either a Sort or a Search, sort will order the players, and search will filter the players.\n\nIf you wish to learn how to write out your search or sort, please press \"Tutorial\", otherwise if you're ready to write your rule, press \"Create Search\""
+            contentManager.currentOptions = [(54,"Tutorial",1),(57,"Create Search",1)]
+            
+        case 54:
+            contentManager.currentDisplay = "Sorts and Searches are both written in a similar format:\n\n(Key Word) (Statistic) (Condition)\n\nFor example: Sort Statistic1 >\n\nThe above sort will sort the players by \"Statistic1\", in ascending order or greatest to smallest.\n\nThe acceptable \"Key Words\" are \"Sort\" and \"Search\", the Statistic can be any statistic in your activity, and the condition will vary based on your input.\n\n"
+            contentManager.currentOptions = [(55,"How To Write Sorts",1),(56,"How To Write Searches",1), (53,"Exit Tutorial",1)]
+        case 55:
+            contentManager.currentDisplay = "A sort is written as Sort (Statistic) (Condition), an easy example of this is:\n\nSort Statistic1 >\n\nThe condition being used for a sort should be either \">\" or \"<\", meaning sort it by largest-smallest or by smallest-largest on the Statistic that you have selected"
+            contentManager.currentOptions = [(56,"How To Write Searches",1), (53,"Exit Tutorial",1)]
+        case 56:
+            contentManager.currentDisplay = "A search is written as Search (Statistic) (Condition), an easy example of this is:\n\nSearch Statistic1 > 30\n\nThe condition being used for a search should be either \">\", \"<\", \"=\", \"!=\", \">=\", \"<=\", or \"~\", followed by a value which is any number.\n\nThe conditions mentioned above mean Greater Than, Less Than, Equal To, Isn't Equal To, Greater Than Or Equal To, Less Than Or Equal To, and Closest To, which all check the statistic based on the number given after.\n\nIf for some reason you wanted to perform a more complicated search, like \"Search these values for where Statistic1+Statistic2 is greater than 50\", you can perform this by creating a \"Automatic Calculation\" for this activity. If you wish to learn more about automatic calculations, please press \"Automatic Calculations\", which will send you directly to the automatic calculation page."
+            contentManager.currentOptions = [(55,"How To Write Sorts",1), (30,"Automatic Calculations",1), (53,"Exit Tutorial",1)]
+        case 57:
+            
+            contentManager.currentDisplay = "Please Input your addition to the rule using the text field.\n\nNumber Of Remaining Players: "
+            
+            // Table, Text Field, Input Button, View Button, Quit Button
+            // 9, 2, 1, 1, 1
+            contentManager.currentOptions = [(0,"Current Rules",9),(0,"New Rule",2),(57,"Input Rule",1), (57,"Remove Rule",1), (57,"View Players From Rule",1),(57,"Exit Menu",1)]
+            contentManager.tableValues = [("Placeholder","Placeholder")]
+            
+            // Declare the players that are currently available in the selection
+            var usePlayers: [Person] = []
+            
+            // Get the activity
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            
+            
+            // If they're removing a rule
+            if sender.titleLabel!.text == "Remove Rule" {
+                // Remove the blank that was input from their pressing the remove button
+                contentManager.savedTextfieldInformation.removeLast()
+                
+                // If they then still have values remaining, remove them
+                if contentManager.savedTextfieldInformation.count != 1 {
+                    contentManager.savedTextfieldInformation.removeLast()
+                }
+                
+                // If their input wasn't the loading this menu for the first time
+            } else if sender.titleLabel!.text != "Create Search" {
+                // Verify their input
+                var newInput: String = contentManager.savedTextfieldInformation.last!
+                var inputSplit: [String] = newInput.components(separatedBy: " ")
+                
+                // If it's a search rule, and it has right number of values
+                if inputSplit.count == 4 && inputSplit[0].lowercased() == "search" {
+                    
+                    // Check that the components are accurate
+                    let statisticCheck: Bool = (-1 != activity.overallStatistics.searchNamesFor(input: inputSplit[1])) // Make sure valid statistic name
+                    let operatorCheck: Bool = inputSplit[2].isValidSearchOperator() // Make sure valid operator
+                    let valueCheck: Bool = (Float(inputSplit[3]) != nil) // Make sure valid value
+                    
+                    // If they aren't accurate then remove the last text input
+                    if !statisticCheck || !operatorCheck || !valueCheck {
+                        var inputMessage: String = ""
+                        if !statisticCheck {
+                            inputMessage += "You didn't use a valid statistic."
+                        }
+                        if !operatorCheck {
+                            inputMessage += "You didn't use a valid operator."
+                        }
+                        if !valueCheck {
+                            inputMessage += "You didn't use a valid number."
+                        }
+                        
+                        alert(message: "Your search input failed because: \(inputMessage)", title: "Input Failed")
+                        contentManager.savedTextfieldInformation.removeLast()
+                    }
+                    
+                    // If it's a sort rule and it has right number of values
+                } else if inputSplit.count == 3 && inputSplit[0].lowercased() == "sort" {
+                    let statisticCheck: Bool = (-1 != activity.overallStatistics.searchNamesFor(input: inputSplit[1])) // Make sure valid statistic name
+                    let operatorCheck: Bool = inputSplit[2].isValidSortOperator() // Make sure valid operator
+                    
+                    // If they aren't accurate then remove the last text input
+                    if !statisticCheck || !operatorCheck {
+                        
+                        // Prepare a display message for the user
+                        var inputMessage: String = ""
+                        if !statisticCheck {
+                            inputMessage += "You didn't use a valid statistic."
+                        }
+                        if !operatorCheck {
+                            inputMessage += "You didn't use a valid operator."
+                        }
+                        
+                        // Display the alert to them
+                        alert(message: "Your sort input failed because: \(inputMessage)", title: "Input Failed")
+                        
+                        // Remove the value
+                        contentManager.savedTextfieldInformation.removeLast()
+                    }
+                    
+                    // If it isn't a sort or search or doesn't meet the length requirements then don't let them input it
+                } else {
+                    
+                    // Display the alert to them
+                    alert(message: "Your input either had too many words for your action, too few words for your action, or didn't contain a valid action.", title: "Input Failed")
+                    
+                    // Remove the incorrect value
+                    contentManager.savedTextfieldInformation.removeLast()
+                }
+                
+                
+                // Handle their other inputs
+                var searchSplit: [String] = contentManager.savedTextfieldInformation
+                searchSplit.removeFirst()
+                
+                // If they have actual inputs for rules then run them
+                if searchSplit.count != 0 {
+                    
+                    // Store each rule type seperately since the correct order is search then sort
+                    var searchRules: [String] = []
+                    var sortRules: [String] = []
+                    
+                    // Display their current rules to them (Remove Placeholder)
+                    contentManager.tableValues = []
+                    for value in searchSplit {
+                        contentManager.tableValues.append((title: "\(value.components(separatedBy: " ")[0].lowercased())", value: value))
+                        if value.components(separatedBy: " ")[0].lowercased() == "sort" {
+                            sortRules.append(value)
+                        } else {
+                            searchRules.append(value)
+                        }
+                    }
+                    
+                    // Get them here
+                    // Get them here
+                    // Get them here
+                    
+                    // Run through each of the searches
+                    for rule in searchRules {
+                        // Get the rule into a workable form
+                        var ruleElements: [String] = rule.components(separatedBy: " ")
+                        
+                        // Get the indexes of the players who failed the check
+                        var indexArray: [Int] = []
+                        
+                        // Array for if the user uses a "~" check
+                        var valueArray: [(Float,Int)] = []
+                        
+                        // Run each player through the check
+                        for (index,player) in usePlayers.enumerated() {
+                            
+                            // Get the value that we are checking
+                            let statisticIndex: Int = activity.overallStatistics.searchNamesFor(input: ruleElements[1])
+                            let statisticValue: Float = player.currentStatistics.statistics[statisticIndex].value
+                            
+                            // Perform the opposite calculation to what the user wants, and if they pass it then they fail the actual one
+                            switch ruleElements[2] {
+                                
+                            // If the user wants greater than, if it's less than or equal to, then remove it
+                            case ">": if statisticValue <= Float(ruleElements[3])! {
+                                indexArray.append(index)
+                            }
+                            
+                            // If the user wants less than, if it's greater than or equal to, then remove it
+                            case "<": if statisticValue >= Float(ruleElements[3])! {
+                                indexArray.append(index)
+                            }
+                            
+                            // If the user wants equal to, if it's not equal to, then remove it
+                            case "=": if statisticValue != Float(ruleElements[3]) {
+                                indexArray.append(index)
+                            }
+                                
+                            // If the user wants not equal to, if it's equal to, then remove it
+                            case "!=": if statisticValue == Float(ruleElements[3])! {
+                                indexArray.append(index)
+                            }
+                                
+                            // If the user wants greater than or equal to, if it's less than, then remove it
+                            case ">=": if statisticValue < Float(ruleElements[3])! {
+                                indexArray.append(index)
+                            }
+                                
+                            // If the user wants less than or equal to, if it's greater than, then remove it
+                            case "<=": if statisticValue > Float(ruleElements[3])! {
+                                indexArray.append(index)
+                            }
+                            
+                            // This one is more complex, so it'll be explained about 7 lines later
+                            case "~":
+                                valueArray.append((statisticValue,index))
+                            default: break
+                            }
+                        }
+                        
+                        // If they use a closest to check, then sort all the values in descending order
+                        if ruleElements[2] == "~" {
+                            
+                            valueArray.sort {$0.0 > $1.0}
+                            
+                            // Keep track of the crucial values
+                            var smallestDifference: Float = 0
+                            var smallestDifferenceIndex: Int = 0
+                            
+                            // Run through all of the values stored for the players
+                            for (index,value) in valueArray.enumerated() {
+                                
+                                // If the absolute difference between selected value and their value is bigger than the latest one then break
+                                if abs(value.0 - Float(ruleElements[3])!) > smallestDifference && smallestDifference != 0 {
+                                    // This is because if the abs value increases, then clearly the values are getting further away from the actual value, and so we should break here
+                                    break
+                                    
+                                // If the absolute value is smaller than the last smallest value, set the new values accordingly
+                                } else {
+                                    smallestDifference = abs(value.0 - Float(ruleElements[3])!)
+                                    smallestDifferenceIndex = index
+                                }
+                            }
+                            
+                            // Get the index
+                            let closestPlayerIndex: Int = valueArray[smallestDifferenceIndex].1
+                            
+                            // The only player to keep is the one player who is closest
+                            usePlayers = [usePlayers[closestPlayerIndex]]
+                            
+                        // If it wasn't a closest to, then run the removal process
+                        } else {
+                            // Run through each of the players to remove
+                            for (offsetIndex,index) in indexArray.enumerated() {
+                                
+                                // Remove it at index - offset, since if I remove 1 person, the other indexes will shift by 1
+                                usePlayers.remove(at: index - offsetIndex)
+                            }
+                        }
+                    }
+                    
+                    // Run through each of the sorting rules
+                    for rule in sortRules {
+                        // Get the rule elements
+                        var ruleElements: [String] = rule.components(separatedBy: " ")
+                        
+                        // Get the statistic to sort on
+                        let statisticIndex: Int = activity.overallStatistics.searchNamesFor(input: ruleElements[1])
+                        
+                        // If it's to be sorted in descending order sort in descending order
+                        if ruleElements[2] == ">" {
+                            usePlayers.sort {$0.currentStatistics.statistics[statisticIndex].value > $1.currentStatistics.statistics[statisticIndex].value}
+                        
+                        // If it's to be sorted in ascending order sort in ascending order
+                        } else {
+                            usePlayers.sort {$0.currentStatistics.statistics[statisticIndex].value < $1.currentStatistics.statistics[statisticIndex].value}
+                        }
+                    }
+                }
+            }
+            
+            // Let the player know how many players are left after they add or remove a rule
+            contentManager.currentDisplay += "\(usePlayers.count)"
+            
         case 58: break
         case 59: break
         case 60: break
@@ -1667,20 +1962,41 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         }
     }
     
+    
+    
+    
+    // Function to display a system message to the user
+    func alert(message: String, title: String) {
+        let alert = UIAlertController(title: "\(title)", message: "\(message)", preferredStyle: .alert)
+        let okButton = UIAlertAction(title: "Ok", style: .default)
+        alert.addAction(okButton)
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    
+    
+    
+    
+    
+    
+    // Code that allows keyboard use with swift projects so that if this application is being run on a macbook that it could still be used
     override var keyCommands: [UIKeyCommand]? {
         var commands: [UIKeyCommand] = []
         
+        // Get all number keys added
         for number in 0...9 {
             let input = "\(number)"  // Convert number to string
             let command = UIKeyCommand(input: input, modifierFlags: [], action: #selector(numberKeyPressed(_:)))
             commands.append(command)
         }
         
+        // Let arrow keys work
         let upArrowCommand = UIKeyCommand(input: UIKeyCommand.inputUpArrow, modifierFlags: [], action: #selector(upArrowPressed(_:)))
         let downArrowCommand = UIKeyCommand(input: UIKeyCommand.inputDownArrow, modifierFlags: [], action: #selector(downArrowPressed(_:)))
         let leftArrowCommand = UIKeyCommand(input: UIKeyCommand.inputLeftArrow, modifierFlags: [], action: #selector(leftArrowPressed(_:)))
         let rightArrowCommand = UIKeyCommand(input: UIKeyCommand.inputRightArrow, modifierFlags: [], action: #selector(rightArrowPressed(_:)))
         
+        // Add arrow keys
         commands.append(upArrowCommand)
         commands.append(downArrowCommand)
         commands.append(leftArrowCommand)
@@ -1689,6 +2005,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         return commands
     }
     
+    // Make number keys work
     @objc func numberKeyPressed(_ sender: UIKeyCommand) {
         guard let input = sender.input, let index = Int(input) else { return }  // Convert input to Int
         

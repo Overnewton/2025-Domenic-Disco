@@ -41,6 +41,11 @@ class Activity: Codable {
 
     // Function to calculate the current total statistics of an activity
     func calculateCurrentStatistics() {
+        // First reset the values to 0 so that all base values are removed
+        for (index,statistic) in self.combined.statistics.enumerated() {
+            self.combined.statistics[index].value = 0
+        }
+        
         // Run through each of the people in the activity
         for player in self.people {
             
@@ -154,6 +159,7 @@ struct FixedStorage: Codable {
     var id: Int
 }
 
+// Class to store a person
 class Person: Codable {
     var details: PersonDetails
     var currentStatistics: StatisticHolder
@@ -165,7 +171,14 @@ class Person: Codable {
         self.pastPeriods = pastPeriods
     }
     
+    // Function to calculate the combined total of a persons past periods
     func calculateCurrentStatistics() {
+        // First reset the values to 0 so that all base values are removed
+        for (index,statistic) in self.currentStatistics.statistics.enumerated() {
+            self.currentStatistics.statistics[index].value = 0
+            
+        }
+        
         // Run through all past periods
         for (_,pastStatistics) in pastPeriods {
             
@@ -190,18 +203,6 @@ class Person: Codable {
                 
                 // Set the value using the rule
                 currentStatistics.statistics[index].value = calculation.run(inputPerson: currentStatistics)
-                
-                // There can never be problems with this rule in terms of there being a second rule that uses another rule being used before it
-                // Explanation - Let's say we have autocalc1 and autocalc2
-                //
-                // autocalc1 is statistic1 + statistic2
-                // autocalc2 is autocalc1 * statistic3
-                //
-                // You might think that there could be problems since what if autocalc2 is set before we set autocalc1
-                // But that can't ever happen since the array of statistics doesn't change it's order.
-                // autocalc2 must be created after autocalc1, since you can't reference a statistic that doesn't exist yet
-                // And since they always remain in the same order, the autocalc2 will always be made after autocalc1
-                // And therefore we will never un into problems caused by the generation of autocalcs
             }
         }
     }
@@ -290,13 +291,19 @@ struct Statistic: Codable {
     var rule: [Calculation]
 }
 
+// Function that can be used on an array of statistics that gives the index of a statistic with any name
 extension [Statistic] {
     func searchNamesFor(input: String) -> Int {
+        
+        // Run through all statistics
         for (index,statistic) in self.enumerated() {
-            if statistic.name == input {
+            
+            // If the names match then give the index
+            if (statistic.name).lowercased() == (input).lowercased() {
                 return index
             }
         }
+        // If no matches are found return -1
         return -1
     }
 }
@@ -439,6 +446,16 @@ extension String {
     // Function to check if a string is a valid operator for an automatic calculation
     func isValidOperator() -> Bool {
         return ["+","-","/","*","x"].contains(self)
+    }
+    
+    // Function to check if a string is a valid operator for a search function
+    func isValidSearchOperator() -> Bool {
+        return [">", "<", "=", "!=", ">=", "<=", "~"].contains(self)
+    }
+    
+    // Function to check if a string is a valid operator for a sort function
+    func isValidSortOperator() -> Bool {
+        return [">", "<"].contains(self)
     }
     
     // Function to convert an operator symbol into a word
