@@ -11,7 +11,7 @@ struct ContentManager {
     
     // Permanent storage of values
     var savedTextfieldInformation: [String]
-    var savedInteger: Int
+    var savedIntegers: [Int]
     var savedDropdownInformation: Int
     
     // Values used to display elements one by one
@@ -42,7 +42,7 @@ struct StoredActivity {
 }
 
 // Initialises the content manager for use throughout the code
-var contentManager: ContentManager = ContentManager(currentOptions: [(-20, "Begin Program", 1)], currentDisplay: "", savedTextfieldInformation: [], savedInteger: 0, savedDropdownInformation: 0, displaySeperate: [], repeatedString: "", returnPoint: 0, exitString: "", storedDropdowns: [], savedText: [], selectedValues: StoredActivity(activity: -1, team: -1, group: -1, player: -1), tableValues: [], selectedDropdownIndex: 0, selectedRow: 0)
+var contentManager: ContentManager = ContentManager(currentOptions: [(-20, "Begin Program", 1)], currentDisplay: "", savedTextfieldInformation: [], savedIntegers: [], savedDropdownInformation: 0, displaySeperate: [], repeatedString: "", returnPoint: 0, exitString: "", storedDropdowns: [], savedText: [], selectedValues: StoredActivity(activity: -1, team: -1, group: -1, player: -1), tableValues: [], selectedDropdownIndex: 0, selectedRow: 0)
 
 class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource {
     
@@ -96,7 +96,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.currentOptions = []
                 
                 // For each account that is saved, display it as a button
-                for (password,username) in getPasswords() {
+                for (_,username) in getPasswords() {
                     contentManager.currentOptions.append((-19,"Load \(username)",1))
                 }
                 
@@ -122,7 +122,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // sendString = sendString.components(separatedBy: " ")[0]
             
             // Run through all the saved accounts
-            for (password,username) in getPasswords() {
+            for (_,username) in getPasswords() {
                 if username == sendString {
                     contentManager.currentDisplay = "This account requires a password to log in, would you like to access it?"
                     user.details.username = sendString
@@ -374,7 +374,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             contentManager.currentDisplay = "Congratulations, you have successfully created the activity \(contentManager.savedTextfieldInformation[0]). This activity has \(contentManager.tableValues.count) statistics being tracked, and uses player storage Option \(sender.titleLabel!.text!.last!)"
             // Create Activity Here
-            var newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], storageType: 0, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall Statistics", statistics: []), overallStatistics: [])
+            let newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], storageType: 0, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall Statistics", statistics: []), overallStatistics: [])
             
             // Add statistics and values to the activity
             for (title,value) in contentManager.tableValues {
@@ -440,14 +440,14 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.currentDisplay = "You currently don't have any groups, to create a new group press \"Create New Group\""
                 
                 // Create a button to create a new group, and a button to exit the page
-                contentManager.currentOptions = [(23,"Create New Group",1),(7,"Exit",1)]
+                contentManager.currentOptions = [(37,"Create New Group",1),(7,"Exit",1)]
                 
                 // Otherwise display groups and let them select
             } else {
                 contentManager.currentDisplay = "Please select the group that you want to view using the dropdown menu. Or press \"Create New Group\" to create a new group."
                 
                 // Create a tbl-dropdown for the groups, a button to view a group, a button to create a group, and a button to exit the page
-                contentManager.currentOptions = [(0,"Group",7),(9,"View Group",1),(2,"Create New Group",1),(7,"Exit Menu",1)]
+                contentManager.currentOptions = [(0,"Group",7),(9,"View Group",1),(37,"Create New Group",1),(7,"Exit Menu",1)]
                 
                 // Set the table view to show groups and set the dropdown to match the tableview
                 contentManager.tableValues = []
@@ -458,18 +458,30 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 }
             }
         case 9: // View Group
-            // Set the selected group to whichever value the user selected in the dropdown menu
-            contentManager.selectedValues.group = contentManager.savedDropdownInformation
-            
             // Save data since some later cases send the user back here
             saveGameData()
             
-            // MARK: AAAAA
-            // WORK IN PROGRESS, DISPLAY THE GROUP HERE, ADD A OPTION TO VIEW PLAYERS FOR GROUP, ADD A OPTION TO DELETE GROUP, ETC
-            contentManager.currentDisplay = "View Group Screen -> Set text here"
+            // Reset the team and player values to avoid later issues
+            contentManager.selectedValues.team = -1
+            contentManager.selectedValues.player = -1
             
-            // Make a button to exit the menu, later I will add the other options here, but for now it's not there
-            contentManager.currentOptions = [(7,"Exit Menu",1)]
+            // Set the selected activity to whichever value the user selected in the dropdown menu
+            if sender.titleLabel!.text == "View Group" {
+                contentManager.selectedValues.group = contentManager.savedDropdownInformation
+            }
+            
+            // Get the activity as it's own constant for ease of use
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let group: Group = activity.groups[contentManager.selectedValues.group]
+            
+            contentManager.currentDisplay = "You are currently viewing \(group.name), a group that has \(group.people.count) people, and \(group.teams.count) teams."
+            
+            
+            // Create a button for viewing the activity, and a button for viewing the players in the activity
+            contentManager.currentOptions = [(21,"View Group Details",1), (10,"View Teams",1), (12,"View All Players In Group",1)]
+            
+            // Add a button to exit the page
+            contentManager.currentOptions += [(7,"Exit Menu",1)]
             
         case 10: // Select Team
             
@@ -526,17 +538,17 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // If no teams exist then have the user make a team
             if noTeams {
-                contentManager.currentDisplay = "Select Team Screen"
+                contentManager.currentDisplay = "You currently don't have any teams, to create a new team press \"Create New Team\""
                 
-                // Create a button to exit the menu
-                contentManager.currentOptions = [(7,"Exit Menu",1)]
+                // Create a button to create a new group, and a button to exit the page
+                contentManager.currentOptions = [(41,"Create New Team",1),(7,"Exit",1)]
                 
                 // Otherwise let the user select the team
             } else {
-                contentManager.currentDisplay = "Select Team Screen"
+                contentManager.currentDisplay = "Please select the team that you want to view using the dropdown menu. Or press \"Create New Team\" to create a new team."
                 
-                // Create a button to exit the menu
-                contentManager.currentOptions = [(7,"Exit Menu",1)]
+                // Create a tbl-dropdown for the groups, a button to view a group, a button to create a group, and a button to exit the page
+                contentManager.currentOptions = [(0,"Team",7),(11,"View Team",1),(41,"Create New Team",1),(7,"Exit Menu",1)]
                 
                 // Display the players names in the tableValues
                 contentManager.tableValues = []
@@ -548,23 +560,21 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
             
         case 11: // View Team
+            // Save data since some later cases send the user back here
             saveGameData()
             
-            // Reset viewed player value
+            // Reset the team and player values to avoid later issues
             contentManager.selectedValues.player = -1
             
-            // Set the team that we're viewing to what the player selected
+            // Set the selected activity to whichever value the user selected in the dropdown menu
             if sender.titleLabel!.text == "View Team" {
                 contentManager.selectedValues.team = contentManager.savedDropdownInformation
             }
             
-            // Get the team that we're meant to be viewing
+            // Get the activity as it's own constant for ease of use
             let activity: Activity = user.activities[contentManager.selectedValues.activity]
-            
-            // Get the team that we're displaying
             var team: Team?
             
-            // Figure out what team to get
             if contentManager.selectedValues.group != -1 {
                 let group: Group = activity.groups[contentManager.selectedValues.group]
                 team = group.teams[contentManager.selectedValues.team]
@@ -572,10 +582,18 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 team = activity.teams[contentManager.selectedValues.team]
             }
             
-            contentManager.currentDisplay = "View Team Screen"
+            contentManager.currentDisplay = "You are currently viewing \(team!.name), a team that has \(team!.people.count) people."
             
-            // Create a button to exit the menu
-            contentManager.currentOptions = [(7,"Exit Menu",1)]
+            // Create a button for viewing the activity, and a button for viewing the players in the activity
+            contentManager.currentOptions = [(21,"View Team Details",1), (45, "Input Statistics For Team",1), (12,"View Players For Team",1)]
+            
+            // Add a button to exit the page
+            
+            if contentManager.selectedValues.group == -1 {
+                contentManager.currentOptions += [(7,"Exit Menu",1)]
+            } else {
+                contentManager.currentOptions += [(9,"Exit Menu",1)]
+            }
         case 12: // Viewing Players
             
             // This array is used to store the people that need to be displayed
@@ -583,7 +601,6 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // Figure out what to do based on what the button the user pressed
             switch sender.titleLabel!.text {
-                
                 // If this is to view all players then display all players for the activity
             case "View All Players":
                 let activity: Activity = user.activities[contentManager.selectedValues.activity]
@@ -610,6 +627,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     let team: Team = group.teams[contentManager.selectedValues.team]
                     displayPeople = team.people
                 }
+            case "View All Players In Group":
+                let activity: Activity = user.activities[contentManager.selectedValues.activity]
+                let group: Group = activity.groups[contentManager.selectedValues.group]
+                displayPeople = group.people
             default: break
             }
             
@@ -618,13 +639,29 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.currentDisplay = "Currently your selection doesn't have any players, to create a new player, press \"Add New Player\""
                 
                 // Create a button to create a new player, and a button to exit the page
-                contentManager.currentOptions = [(13,"Add New Player",1),(7,"Exit",1)]
+                contentManager.currentOptions = [(13,"Add New Player",1)]
+                
+                // Make the exit button go to the right place
+                switch sender.titleLabel!.text {
+                case "View All Players": contentManager.currentOptions.append((7,"Exit",1))
+                case "View All Players In Group", "View Players For Group": contentManager.currentOptions.append((9,"Exit",1))
+                case "View Players For Team": contentManager.currentOptions.append((11,"Exit",1))
+                default: break
+                }
             } else {
                 // Otherwise let them select the player they want to view
                 contentManager.currentDisplay = "Please select the player that you want to view using the dropdown menu. Or press \"Add New Player\" to input a new player."
                 
                 // Create a tbl-dropdown for the player, a button for viewing a player, a button to create a new player, and a button to exit the page
-                contentManager.currentOptions = [(0,"Player",7), (22,"View Player",1), (13,"Add New Player",1), (7,"Exit",1)]
+                contentManager.currentOptions = [(0,"Player",7), (22,"View Player",1), (13,"Add New Player",1)]
+                
+                // Make the exit button go to the right page
+                switch sender.titleLabel!.text {
+                case "View All Players": contentManager.currentOptions.append((7,"Exit",1))
+                case "View All Players In Group", "View Players For Group": contentManager.currentOptions.append((9,"Exit",1))
+                case "View Players For Team": contentManager.currentOptions.append((11,"Exit",1))
+                default: break
+                }
                 
                 // Display the players names in the tableValues
                 contentManager.tableValues = []
@@ -638,7 +675,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentDisplay = "What would you like this player to be named?"
             
             // Create a text field with the name, a button to input the name, and a button to exit the menu
-            contentManager.currentOptions = [(0,"Name",2),(14,"Submit Name",1),(7,"Exit Menu",1)]
+            contentManager.currentOptions = [(0,"Name",2), (14,"Submit Name",1), (7,"Exit Menu",1)]
             
             clearTextFieldData()
         case 14: // Create Player -> Check Name / Add Statistics
@@ -728,12 +765,12 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                         // One value from the table has been used
                         tableIndex += 1
                         
-                    // If the rule is an automatic calcualtion then handle that later
+                        // If the rule is an automatic calcualtion then handle that later
                     } else {
                         recordedIndex.append(index)
                     }
                 }
-
+                
                 // Handle the automatic calculations
                 for index in recordedIndex {
                     // Insert them to the correct point in the array
@@ -791,9 +828,94 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Create a button to exit the page
             contentManager.currentOptions = [(7,"Exit Menu",1)]
             
-        case 18: break // Blank cases incase later I need to modify code
-        case 19: break // Blank cases incase later I need to modify code
-        case 20: break // Blank cases incase later I need to modify code
+        case 18: // View Player Statistics Screen
+            
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            var player: Person?
+            
+            // Figure out if player is from all players or just from group or team players
+            if contentManager.selectedValues.group == -1 {
+                
+                // If not in group and not in team then it's just from activity
+                if contentManager.selectedValues.team == -1 {
+                    player = activity.people[contentManager.selectedValues.player]
+                    
+                    // If not in group but in team, then it's from activity-team
+                } else {
+                    let team: Team = activity.teams[contentManager.selectedValues.team]
+                    player = team.people[contentManager.selectedValues.player]
+                }
+            } else {
+                
+                // If in group but not in team, then it's from activity-group
+                if contentManager.selectedValues.team == -1 {
+                    let group: Group = activity.groups[contentManager.selectedValues.group]
+                    player = group.people[contentManager.selectedValues.player]
+                    
+                    // If in group and in team, then it's from activity-group-team
+                } else {
+                    let group: Group = activity.groups[contentManager.selectedValues.group]
+                    let team: Team = group.teams[contentManager.selectedValues.team]
+                    player = team.people[contentManager.selectedValues.player]
+                }
+            }
+            
+            // Display all of the players past values
+            contentManager.tableValues = [("Current Values","")]
+            for (_,pastPeriod) in player!.pastPeriods {
+                contentManager.tableValues.append((title: pastPeriod.description, value: ""))
+            }
+            
+            contentManager.currentDisplay = "What set of statistic values do you want to view"
+            contentManager.currentOptions = [(0,"Period",7),(19,"View Statistics",1), (22, "Exit Menu",1)]
+            
+        case 19: // View Player Statistics Screen
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            var player: Person?
+            
+            // Figure out if player is from all players or just from group or team players
+            if contentManager.selectedValues.group == -1 {
+                
+                // If not in group and not in team then it's just from activity
+                if contentManager.selectedValues.team == -1 {
+                    player = activity.people[contentManager.selectedValues.player]
+                    
+                    // If not in group but in team, then it's from activity-team
+                } else {
+                    let team: Team = activity.teams[contentManager.selectedValues.team]
+                    player = team.people[contentManager.selectedValues.player]
+                }
+            } else {
+                
+                // If in group but not in team, then it's from activity-group
+                if contentManager.selectedValues.team == -1 {
+                    let group: Group = activity.groups[contentManager.selectedValues.group]
+                    player = group.people[contentManager.selectedValues.player]
+                    
+                    // If in group and in team, then it's from activity-group-team
+                } else {
+                    let group: Group = activity.groups[contentManager.selectedValues.group]
+                    let team: Team = group.teams[contentManager.selectedValues.team]
+                    player = team.people[contentManager.selectedValues.player]
+                }
+            }
+            
+            
+            // TODO: ADD FUNCTIONALITY HERE TO ACTUALLY DISPLAY THE STATISTICS
+            
+            // If they selected the first value then they want to view current overall
+            if contentManager.selectedDropdownIndex == 0 {
+                player!.currentStatistics
+            
+            // If they selected any other value then they're viewing past statistics
+            } else {
+                player!.pastPeriods[contentManager.selectedDropdownIndex - 1]
+            }
+            
+            
+            
+            
+        case 20: break
         case 21: // View Activity Details
             saveGameData()
             // Get the activity
@@ -811,9 +933,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.tableValues = []
             for statistic in activity.overallStatistics {
                 if statistic.rule.isEmpty {
-                    contentManager.tableValues.append((title: statistic.name,value: String(statistic.value)))
+                    contentManager.tableValues.append((title: statistic.name,value: "Base Value: " + String(statistic.value)))
                 } else {
-                    contentManager.tableValues.append((title: statistic.name,value: statistic.rule[0].toString()))
+                    contentManager.tableValues.append((title: statistic.name, value: "Rule: " + statistic.rule[0].toString()))
                 }
             }
             
@@ -860,7 +982,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentDisplay = player!.display()
             
             // Create a button to exit the menu
-            contentManager.currentOptions = [(7,"Exit Menu",1)]
+            contentManager.currentOptions = [(18, "View Player Statistics", 1), (45, "Input Statistics For Player",1), (7,"Exit Menu",1)]
+            
+            
         case 23: // Edit Activity Statistics
             contentManager.currentDisplay = "What do you want to edit?"
             contentManager.currentOptions = [(24,"Change Base Values",1), (26,"Add New Statistic",1), (30,"Add Calculation",1), (21,"Exit Menu",1)]
@@ -962,7 +1086,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
             contentManager.currentDisplay = "The new statistics have been added to your activity."
             contentManager.currentOptions = [(21,"Exit Menu",1)]
-
+            
         case 30: // Confirm Automatic Calculation
             contentManager.currentDisplay = "Are you sure you wish to create an automatic calculation?"
             contentManager.currentOptions = [(31,"Yes",1),(21,"No",1)]
@@ -986,16 +1110,17 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.tableValues.append((statistic.name,""))
             }
         case 33: // Check Automatic Calculation
-            var ruleWords: [String] = contentManager.savedTextfieldInformation[0].components(separatedBy: " ")
+            let ruleWords: [String] = contentManager.savedTextfieldInformation[0].components(separatedBy: " ")
             
             // Perform checks on the players input
             let lengthCheck: Bool = (ruleWords.count == 3)
             let primaryCheck: Bool = ruleWords[0].isValidComponent()
             let operatorCheck: Bool = ruleWords[1].isValidOperator()
             let secondaryCheck: Bool = ruleWords[2].isValidComponent()
+            let crashCheck: Bool = (ruleWords[1] == "/" && ruleWords[2] == "0")
             
             // If it failed any of the checks then tell them what they did wrong
-            if !lengthCheck || !primaryCheck || !operatorCheck || !secondaryCheck {
+            if !lengthCheck || !primaryCheck || !operatorCheck || !secondaryCheck || !crashCheck {
                 contentManager.currentDisplay = "Oh dear, there seem to be some errors in your code:\n\n"
                 
                 if !lengthCheck {
@@ -1010,6 +1135,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 if !secondaryCheck {
                     contentManager.currentDisplay += "Your second value is not a number or a statistic\n\n"
                 }
+                if !crashCheck {
+                    contentManager.currentDisplay += "You are dividing a value by 0... Are you seriously trying to break my code with a divide by 0? That's an insanely lame thing to do...\n\n"
+                }
                 
                 contentManager.currentDisplay += "Please fix these problems if you wish to create the calculation."
                 
@@ -1018,6 +1146,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             } else {
                 contentManager.currentDisplay = "Let's confirm that your rule is correct:\n\n"
                 
+                // Display the first value
                 contentManager.currentDisplay += "First Value: \(ruleWords[0])"
                 if ruleWords[0].isFloat() {
                     contentManager.currentDisplay += " (Number)\n"
@@ -1025,14 +1154,18 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     contentManager.currentDisplay += " (Statistic)\n"
                 }
                 
+                // Display the operator
                 contentManager.currentDisplay += "Operator: \(ruleWords[1]) (\(ruleWords[1].described()))\n"
                 
+                // Display the second value
                 contentManager.currentDisplay += "Second Value: \(ruleWords[2])"
                 if ruleWords[2].isFloat() {
                     contentManager.currentDisplay += " (Number)\n\n"
                 } else {
                     contentManager.currentDisplay += " (Statistic)\n\n"
                 }
+                
+                // Confirm that they have their rule correct
                 contentManager.currentDisplay += "Does this look correct to you?"
                 contentManager.currentOptions = [(34,"Yes",1), (32,"No",1)]
             }
@@ -1054,7 +1187,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 // Create a button to exit the page
                 contentManager.currentOptions = [(34,"Exit",1)]
                 
-            // If the name isn't blank, ensure that the name isn't already being used
+                // If the name isn't blank, ensure that the name isn't already being used
             } else {
                 var dupeName: Bool = false
                 for statistic in user.activities[contentManager.selectedValues.activity].overallStatistics {
@@ -1095,21 +1228,405 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentDisplay = "Your automatic calculation has been successfully added to your activity."
             contentManager.currentOptions = [(21,"Exit Menu",1)]
             
-        case 37: break
-        case 38: break
-        case 39: break
-        case 40: break
-        case 41: break
-        case 42: break
-        case 43: break
-        case 44: break
-        case 45: break
-        case 46: break
-        case 47: break
-        case 48: break
-        case 49: break
-        case 50: break
-        case 51: break
+        case 37:
+            clearTextFieldData()
+            contentManager.currentDisplay = "You have decided to create a new group, what would you like it's name to be?"
+            
+            // Create a text field for the name, a button to input the name, and a button to exit the page
+            contentManager.currentOptions = [(0,"Group Name", 2),(38,"Create Group",1), (7,"Exit Menu",1)]
+        case 38: // Assign Group Name --- Add Group Players
+            // Check that they did input a name
+            if contentManager.savedTextfieldInformation[0] == "" {
+                contentManager.currentDisplay = "Unfortunately, you cannot give a group the name of \" \". That would just not work with the rest of my code. Please give it an actual name"
+                
+                // Create a button to exit the page
+                contentManager.currentOptions = [(37,"Exit",1)]
+                
+                // If they did, ensure that the name isn't already being used
+            } else {
+                var dupeName: Bool = false
+                for group in user.activities[contentManager.selectedValues.activity].groups {
+                    if group.name == contentManager.savedTextfieldInformation[0] {
+                        dupeName = true
+                    }
+                }
+                
+                // If name is already used then have them select a new name
+                if dupeName {
+                    contentManager.currentDisplay = "Unfortunately, you cannot give a group a name that's already been used. Please give it a different name"
+                    
+                    // Create a button to exit the page
+                    contentManager.currentOptions = [(37,"Exit",1)]
+                    
+                    // If the name isn't already used, then let them input the statistics for that activity
+                } else {
+                    if user.activities[contentManager.selectedValues.activity].people.isEmpty {
+                        contentManager.currentDisplay = "Since you have no players for this activity, you can immediately finalise group creation. Are you certain you would like to create this group?"
+                        contentManager.currentOptions = [(39,"Create Group",1), (7,"Exit Menu",1)]
+                    } else {
+                        contentManager.currentDisplay = "Your group has been accepted\n\nIf you would like to add players to this group immediately then please press \"Add Players\", but otherwise please press \"Exit Menu\" to exit."
+                        contentManager.currentOptions = [(39,"Add Players",1), (7,"Exit Menu",1)]
+                    }
+                }
+            }
+        case 39: // Input Players
+            if sender.titleLabel!.text == "Create Group" || sender.titleLabel!.text == "Add Players" {
+                contentManager.currentDisplay = "Your group has successfully been created."
+                
+                // Create a button fo rexiting the menu
+                contentManager.currentOptions = [(7,"Exit Menu",1)]
+                
+                // Create the group
+                
+                let newGroup: Group = Group(name: contentManager.savedTextfieldInformation[0], people: [], teams: [], uniqueID: user.groupCount)
+                user.groupCount += 1
+                
+                user.activities[contentManager.selectedValues.activity].groups.append(newGroup)
+                saveGameData()
+            } else {
+                
+                var indexCount: Int = 0
+                // Run through the players in the activity
+                for player in user.activities[contentManager.selectedValues.activity].people {
+                    
+                    // Find the ones not in a group
+                    if player.details.group.id == -1 && player.details.group.name == "" && player.details.group.index == -1 {
+                        
+                        // If they match the selected dropdown segment then they're the one that got selected
+                        if indexCount == contentManager.selectedDropdownIndex {
+                            user.activities[contentManager.selectedValues.activity].groups.last?.people.append(player)
+                        // Otherwise we must try again and see if the next one matches
+                        } else {
+                            indexCount += 1
+                        }
+                    }
+                }
+            }
+            if sender.titleLabel!.text != "Create Group" {
+                contentManager.currentDisplay = "Please select the players that you wish to be in this group through the dropdown menu or tableview, and input them to the activity using the \"Input Player\" button.\n\nWhen you are finished with this step, please press \"Finalise Group\""
+                
+                // Create a tbl-dropdown for group players, a button for creating the group, and a button to exit the menu
+                contentManager.currentOptions = [(0,"Player",7), (39,"Input Player",1), (40,"Finalise Group",1), (7,"Exit Menu",1)]
+                
+                // Make the table start out with the players that aren't in groups already
+                contentManager.tableValues = []
+                for player in user.activities[contentManager.selectedValues.activity].people {
+                    if player.details.group.id == -1 && player.details.group.name == "" && player.details.group.index == -1 {
+                        contentManager.tableValues.append((title: player.details.name, value: ""))
+                    }
+                }
+            }
+        case 40: // Finalise Group 100%
+            contentManager.currentDisplay = "Your group has successfully been created."
+            saveGameData()
+            // Create a button fo rexiting the menu
+            contentManager.currentOptions = [(1,"Exit Menu",7)]
+        case 41: // Create Team
+            clearTextFieldData()
+            contentManager.currentDisplay = "You have decided to create a new team, what would you like it's name to be?"
+            
+            // Create a text field for the name, a button to input the name, and a button to exit the page
+            contentManager.currentOptions = [(0,"Team Name", 2),(42,"Create Team",1),(7,"Exit Menu",1)]
+            
+            // If the player is doing this for a group then make the exit button to to the group page
+            if contentManager.selectedValues.group != -1 {
+                contentManager.currentOptions[2].identifier = 9
+            }
+            
+        case 42: // Assign Team Name --- Add Team Players
+            // Check that they did input a name
+            if contentManager.savedTextfieldInformation[0] == "" {
+                contentManager.currentDisplay = "Unfortunately, you cannot give a team the name of \" \". That would just not work with the rest of my code. Please give it an actual name"
+                
+                // Create a button to exit the page
+                contentManager.currentOptions = [(37,"Exit",1)]
+                
+                // If they did, ensure that the name isn't already being used
+            } else {
+                var dupeName: Bool = false
+                
+                // Handle which set of teams to look at
+                var useTeams: [Team] = []
+                if contentManager.selectedValues.group == -1 {
+                    useTeams = user.activities[contentManager.selectedValues.activity].teams
+                } else {
+                    useTeams = user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].teams
+                }
+                
+                // Find if the name is a duplicate
+                for team in useTeams {
+                    if team.name == contentManager.savedTextfieldInformation[0] {
+                        dupeName = true
+                    }
+                }
+                
+                // If name is already used then have them select a new name
+                if dupeName {
+                    contentManager.currentDisplay = "Unfortunately, you cannot give a team a name that's already been used. Please give it a different name"
+                    
+                    // Create a button to exit the page
+                    contentManager.currentOptions = [(41,"Exit",1)]
+                    
+                    // If the name isn't already used, then let them input the statistics for that activity
+                } else {
+                    if contentManager.selectedValues.group == -1 {
+                        if user.activities[contentManager.selectedValues.activity].people.isEmpty {
+                            contentManager.currentDisplay = "Since you have no players for this activity, you can immediately finalise team creation. Are you certain you would like to create this team?"
+                            contentManager.currentOptions = [(43,"Create Team",1), (7,"Exit Menu",1)]
+                        } else {
+                            contentManager.currentDisplay = "Your group has been accepted\n\nIf you would like to add players to this group immediately then please press \"Add Players\", but otherwise please press \"Exit Menu\" to exit."
+                            contentManager.currentOptions = [(43,"Add Players",1), (7,"Exit Menu",1)]
+                        }
+                    } else {
+                        if user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].people.isEmpty {
+                            contentManager.currentDisplay = "Since you have no players for this group, you can immediately finalise team creation. Are you certain you would like to create this team?"
+                            contentManager.currentOptions = [(43,"Create Team",1), (9,"Exit Menu",1)]
+                        } else {
+                            contentManager.currentDisplay = "Your team has been accepted\n\nIf you would like to add players to this team immediately then please press \"Add Players\", but otherwise please press \"Exit Menu\" to exit."
+                            contentManager.currentOptions = [(43,"Add Players",1), (9,"Exit Menu",1)]
+                        }
+                    }
+                }
+            }
+        case 43: // Input Players
+            if sender.titleLabel!.text == "Create Team" || sender.titleLabel!.text == "Add Players" {
+                contentManager.currentDisplay = "Your team has successfully been created."
+                
+                // Create a button fo rexiting the menu
+                if contentManager.selectedValues.group == -1 {
+                    contentManager.currentOptions = [(7,"Exit Menu",1)]
+                } else {
+                    contentManager.currentOptions = [(9,"Exit Menu",1)]
+                }
+                
+                // Create the team
+                
+                let newTeam: Team = Team(name: contentManager.savedTextfieldInformation[0], people: [], uniqueID: user.teamCount)
+                user.teamCount += 1
+                
+                user.activities[contentManager.selectedValues.activity].teams.append(newTeam)
+                if contentManager.selectedValues.group != -1 {
+                    user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].teams.append(newTeam)
+                }
+                
+                saveGameData()
+            } else {
+                var usePlayers: [Person] = []
+                
+                if contentManager.selectedValues.group == -1 {
+                    usePlayers = user.activities[contentManager.selectedValues.activity].people
+                } else {
+                    usePlayers = user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].people
+                }
+                
+                var indexCount: Int = 0
+                // Run through the players in the activity
+                for player in usePlayers{
+                    
+                    // Find the ones not in a group
+                    if player.details.group.id == -1 && player.details.group.name == "" && player.details.group.index == -1 {
+                        
+                        // If they match the selected dropdown segment then they're the one that got selected
+                        if indexCount == contentManager.selectedDropdownIndex {
+                            
+                            if contentManager.selectedValues.group == -1 {
+                                user.activities[contentManager.selectedValues.activity].teams.last?.people.append(player)
+                            } else {
+                                user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].teams.last?.people.append(player)
+                            }
+                        // Otherwise we must try again and see if the next one matches
+                        } else {
+                            indexCount += 1
+                        }
+                    }
+                }
+            }
+            if sender.titleLabel!.text != "Create Team" {
+                contentManager.currentDisplay = "Please select the players that you wish to be in this team through the dropdown menu or tableview, and input them to the activity using the \"Input Player\" button.\n\nWhen you are finished with this step, please press \"Finalise Group\""
+                
+                // Create a tbl-dropdown for group players, a button for creating the group, and a button to exit the menu
+                contentManager.currentOptions = [(0,"Player",7), (43,"Input Player",1), (44,"Finalise Group",1), (7,"Exit Menu",1)]
+                if contentManager.selectedValues.group != -1 {
+                    contentManager.currentOptions[3].identifier = 9
+                }
+                
+                // Make the table start out with the players that aren't in groups already
+                contentManager.tableValues = []
+                for player in user.activities[contentManager.selectedValues.activity].people {
+                    if player.details.group.id == -1 && player.details.group.name == "" && player.details.group.index == -1 {
+                        contentManager.tableValues.append((title: player.details.name, value: ""))
+                    }
+                }
+            }
+        case 44: // Finalise Group 100%
+            contentManager.currentDisplay = "Your group has successfully been created."
+            saveGameData()
+            // Create a button fo rexiting the menu
+            contentManager.currentOptions = [(7,"Exit Menu",1)]
+            
+            // If it was sent here from a group then send them back to the group
+            if contentManager.selectedValues.group != -1 {
+                contentManager.currentOptions[0].identifier = 9
+            }
+        case 45: // Input Statistics
+            contentManager.savedIntegers = []
+            contentManager.currentOptions = [(46,"Yes",1), (22,"No",1)]
+            
+            // Declare some variables
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            var group: Group?
+            var team: Team?
+            var player: Person?
+            
+            // Set up the relevant variables
+            if contentManager.selectedValues.group != -1 {
+                group = activity.groups[contentManager.selectedValues.group]
+                team = group!.teams[contentManager.selectedValues.team]
+            } else {
+                team = activity.teams[contentManager.selectedValues.team]
+            }
+            
+            // Figure out whether it's team statistics or player statistics
+            switch sender.titleLabel?.text {
+            case "Input Statistics For Team":
+                contentManager.savedIntegers = [0]
+                contentManager.currentOptions[1].identifier = 11
+                
+                // Add each of the players to the array of people to look at
+                for player in team!.people {
+                    contentManager.savedIntegers.append(player.details.uniqueID)
+                }
+                
+                contentManager.currentDisplay = "Are you certain you'd like to input new statistic values for this team?"
+            case "Input Statistics For Player":
+                
+                // Figure out which player is being looked at
+                if team == nil {
+                    if group == nil {
+                        player = activity.people[contentManager.selectedValues.player]
+                    } else {
+                        player = group!.people[contentManager.selectedValues.player]
+                    }
+                } else {
+                    player = team!.people[contentManager.selectedValues.player]
+                }
+                
+                // Add them to the array of people being looked at
+                contentManager.savedIntegers = [0, player!.details.uniqueID]
+                
+                contentManager.currentDisplay = "Are you certain you'd like to input new statistic values for this player?"
+                
+            default: break
+            }
+        case 46: // Add Name
+            contentManager.currentDisplay = "Please input the name that you will be giving to this set of statistics.\n\nHere are some examples: \n28/7/25 - Training\nMatch - 28/7"
+            contentManager.currentOptions = [(0,"Event Name",2),(47,"Input Name",1)]
+            
+        case 47: // Check If Adding Statistics -> 47 / 48
+            
+            // Add 1 to the index that we are checking in the array
+            contentManager.savedIntegers[0] += 1
+            
+            // Get the player that you're meant to be modifying now
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let playerID: Int = contentManager.savedIntegers[contentManager.savedIntegers[0]]
+            let playerIndex: Int = activity.searchPlayersFor(ID: playerID)
+            let player: Person = activity.people[playerIndex]
+            
+            // Check if all the values have been viewed yet
+            if contentManager.savedIntegers[0] == contentManager.savedIntegers.count {
+                contentManager.currentDisplay = "You are now adding statistics for player \(contentManager.savedIntegers[0]), \(player.details.name). If they were absent from this event then please press \"No Statistics Available\""
+                contentManager.currentOptions = [(47,"Add Statistics",1), (50,"No Statistics Available",1)]
+            } else {
+                contentManager.currentDisplay = "You have successfully added a new set of statistics to your players. Please press the \"Finalise Statistics\" button to allow any calculations to be performed."
+                contentManager.currentOptions = [(51,"Finalise Statistics",1),]
+            }
+        case 48: // Add Statistics Screen
+            // Get the player that you're meant to be modifying now
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let playerID: Int = contentManager.savedIntegers[contentManager.savedIntegers[0]]
+            let playerIndex: Int = activity.searchPlayersFor(ID: playerID)
+            let player: Person = activity.people[playerIndex]
+            
+            // Display what the player should input
+            contentManager.currentDisplay = "Please input the statistic values for player \(player.details.name) during event \(contentManager.savedTextfieldInformation[0])"
+            
+            // Create a table-dropdown-text field and a button to finalise
+            contentManager.currentOptions = [(0,"Statistic",6), (49,"Finalise Statistics",1)]
+            
+            // Display the statistics that they need to input
+            contentManager.tableValues = []
+            for statistic in activity.overallStatistics {
+                if statistic.rule.isEmpty {
+                    contentManager.tableValues.append((title: statistic.name, value: String(statistic.value)))
+                }
+            }
+        case 49: // Run Added Statistics (Add the statistics to the player), display completion message
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let playerID: Int = contentManager.savedIntegers[contentManager.savedIntegers[0]]
+            let playerIndex: Int = activity.searchPlayersFor(ID: playerID)
+            let player: Person = activity.people[playerIndex]
+            
+            // Create the statistics that are being added
+            var newStatistics: StatisticHolder = StatisticHolder(description: contentManager.savedTextfieldInformation[0], statistics: activity.overallStatistics)
+            
+            // Run through the statistics
+            var tableIndex: Int = 0
+            for (index,statistic) in newStatistics.statistics.enumerated() {
+                
+                // If this is a statistic they'd input a value for
+                if statistic.rule.isEmpty {
+                    
+                    // Then set the value and move 1 spot forward in the table
+                    newStatistics.statistics[index].value = Float(contentManager.tableValues[tableIndex].value)!
+                    tableIndex += 1
+                } else {
+                    // But if it's an automatic calculation, run the calculation
+                    newStatistics.statistics[index].value = statistic.rule[0].run(inputPerson: newStatistics)
+                }
+            }
+            
+            player.pastPeriods[player.pastPeriods.count] = newStatistics
+            
+            // Give player confirmation
+            contentManager.currentDisplay = "You have successfully input the values for \(player.details.name) during event \(contentManager.savedTextfieldInformation[0]). "
+            
+            // Let the player move onto the next person
+            contentManager.currentOptions = [(47,"Continue",1)]
+        case 50: // No Statistics For This Period
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let playerID: Int = contentManager.savedIntegers[contentManager.savedIntegers[0]]
+            let playerIndex: Int = activity.searchPlayersFor(ID: playerID)
+            let player: Person = activity.people[playerIndex]
+            
+            // Make the statistic input blank
+            let newStatistics: StatisticHolder = StatisticHolder(description: contentManager.savedTextfieldInformation[0], statistics: [])
+            
+            // Input them
+            player.pastPeriods[player.pastPeriods.count] = newStatistics
+            
+            // Give player confirmation
+            contentManager.currentDisplay = "You have successfully input the values for \(player.details.name) during event \(contentManager.savedTextfieldInformation[0]). "
+            
+            // Let the player move onto the next person
+            contentManager.currentOptions = [(47,"Continue",1)]
+        case 51: // Finished Statistic Input
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            
+            contentManager.savedIntegers.removeFirst()
+            
+            // Run through each of the people
+            for playerIndex in contentManager.savedIntegers {
+                activity.people[playerIndex].currentStatistics.statistics = activity.overallStatistics
+            }
+            
+            // Reinitialise the statistics for the activity
+            activity.combined.statistics = activity.overallStatistics
+            
+            // Calculate the total statistics
+            activity.calculateCurrentStatistics()
+            
+            contentManager.currentDisplay = "All calculations have been performed!"
         case 52: break
         case 53: break
         case 54: break
@@ -1615,6 +2132,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 // Add it to the screen
                 view.addSubview(tableView)
                 yOffset += 240
+            case 10: break
             default:
                 break
             }
@@ -1699,13 +2217,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
               let newText = textFields[0].text else { return }
         
         // Update the value in the tuple while preserving title and type
-        let (title, value) = contentManager.tableValues[index]
+        let (title, _) = contentManager.tableValues[index]
         
         // Get the text from the top of the screen (I know it's going to be [0] because my code has no elements in the view until I add the basic text
         let label = view.subviews[0] as! UILabel
         
-        // Now, for four very specific text fields, when you're inputting statistic values, the values must be Floats, so MAKE SURE TO ADD TO THIS IF STATEMENT WHEN YOU NEED ONLY NUMBERS TO BE INPUT
-        if label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." || label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." || label.text == "Edit the base values using the below text field" || label.text == "Please add any basic statistic values to the new statistics." {
+        // Now, for five very specific text fields, when you're inputting statistic values, the values must be Floats, so MAKE SURE TO ADD TO THIS IF STATEMENT WHEN YOU NEED ONLY NUMBERS TO BE INPUT
+        if label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." || label.text == "Please add any basic statistic values to this activity, such as points scores starting at 0, or whatever initial values you want to use." || label.text == "Edit the base values using the below text field" || label.text == "Please add any basic statistic values to the new statistics." || label.text?.components(separatedBy: " ").contains("event") == true {
             
             // So basically it checks if the text can be turned into a float. If it can then no problems
             if let _: Float = Float(newText) {
@@ -1740,8 +2258,6 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     @objc func addTableValues(_ sender: UIButton) {
         print("addTableValues()")
         
-        let activity: Activity = user.activities[contentManager.selectedValues.activity]
-        
         // The table will be [1] since the creation order goes "Top Text -> ***Table*** -> Text Field -> Button"
         let table = view.subviews[1] as! UITableView
         
@@ -1765,6 +2281,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                         duplicateName = true
                     }
                 }
+                
+                let activity: Activity = user.activities[contentManager.selectedValues.activity]
                 
                 // Check it against the existing statistics
                 for statistic in activity.overallStatistics {

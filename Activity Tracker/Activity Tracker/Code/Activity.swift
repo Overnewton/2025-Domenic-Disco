@@ -1,11 +1,13 @@
 import Foundation
 
-var user: User = User(activities: [], details: UserDetails(username: "", password: ""), playerCount: 0)
+var user: User = User(activities: [], details: UserDetails(username: "", password: ""), playerCount: 0, groupCount: 0, teamCount: 0)
 
 struct User: Codable {
     var activities: [Activity]
     var details: UserDetails
     var playerCount: Int
+    var groupCount: Int
+    var teamCount: Int
 }
 
 struct UserDetails: Codable {
@@ -24,6 +26,43 @@ class Activity: Codable {
     // Array of just the statistics with no values associated
     var overallStatistics: [Statistic]
 
+    // Function to get a players postion within the activity's players
+    func searchPlayersFor(ID: Int) -> Int {
+        // Run through all the players
+        for (index,player) in people.enumerated() {
+            
+            // If the ID matches then return their index
+            if player.details.uniqueID == ID {
+                return index
+            }
+        }
+        return -1
+    }
+
+    // Function to calculate the current total statistics of an activity
+    func calculateCurrentStatistics() {
+        // Run through each of the people in the activity
+        for player in self.people {
+            
+            // Get their statistics
+            for (index,statistic) in player.currentStatistics.statistics.enumerated() {
+                
+                // If the statistic is a pure value then add it to the overall tally
+                if statistic.rule.isEmpty {
+                    self.combined.statistics[index].value += statistic.value
+                }
+            }
+        }
+        
+        // Run through the statistics in the activity and run the rules for them
+        for (index,statistic) in self.combined.statistics.enumerated() {
+            if !statistic.rule.isEmpty {
+                // Run the rule to calculate the values automatically
+                self.combined.statistics[index].value = statistic.rule[0].run(inputPerson: self.combined)
+            }
+        }
+    }
+    
     // Function to assign a new statistic to the activity
     func addStatistic(_ newStatistic: Statistic) {
         // Add the statistic to the activity
@@ -32,8 +71,7 @@ class Activity: Codable {
         // Check if this statistic is an automatic calculation statistic
         if !newStatistic.rule.isEmpty {
             
-            for (index,person) in people.enumerated() {
-                
+            for person in people {
                 // Add the statistic
                 person.currentStatistics.statistics.append(newStatistic)
                 
@@ -54,9 +92,9 @@ class Activity: Codable {
             
         // If it isn't, then just add the statistic to the players
         } else  {
-            for (index,person) in people.enumerated() {
+            for person in people {
                 // Add the statistic
-                people[index].currentStatistics.statistics.append(newStatistic)
+                person.currentStatistics.statistics.append(newStatistic)
             }
         }
     }
@@ -129,7 +167,7 @@ class Person: Codable {
     
     func calculateCurrentStatistics() {
         // Run through all past periods
-        for (key,pastStatistics) in pastPeriods {
+        for (_,pastStatistics) in pastPeriods {
             
             // Get every statistic from those periods
             for (statistic) in pastStatistics.statistics {
@@ -391,7 +429,7 @@ extension String {
     func isFloat() -> Bool {
         
         // If the value can be turned into a float
-        if let value: Float = Float(self) {
+        if let _: Float = Float(self) {
             return true
         }
         
