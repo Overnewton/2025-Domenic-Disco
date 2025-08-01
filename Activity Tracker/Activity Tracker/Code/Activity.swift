@@ -105,9 +105,7 @@ class Activity: Codable {
         }
     }
     
-    
-    
-    init(name: String, storageType: Int, people: [Person], groups: [Group], teams: [Team], combined: StatisticHolder, overallStatistics: [Statistic]) {
+    init(name: String, storageType: Int, people: [Person], groups: [Group], teams: [Team], combined: StatisticHolder, overallStatistics: [Statistic], searchRules: [SearchRule]) {
         self.name = name
         self.storageType = storageType
         self.people = people
@@ -115,10 +113,12 @@ class Activity: Codable {
         self.teams = teams
         self.combined = combined
         self.overallStatistics = overallStatistics
+        self.searchRules = searchRules
     }
 }
 
 struct SearchRule: Codable {
+    var name: String
     var rules: [String]
     var players: [Person]
 }
@@ -408,7 +408,7 @@ class Calculation: Codable {
 
 func addTestActivities() {
     for index in 1...4 {
-        user.activities.append(Activity(name: "Activity \(index)", storageType: 1, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall", statistics: []), overallStatistics: []))
+        user.activities.append(Activity(name: "Activity \(index)", storageType: 1, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall", statistics: []), overallStatistics: [], searchRules: []))
         for index in 1...Int.random(in: 5...12) {
             let newStatistic: Statistic = Statistic(name: "Statistic\(index)", value: Float.random(in: 0...5000), rule: [])
             user.activities[user.activities.count - 1].overallStatistics.append(newStatistic)

@@ -42,10 +42,11 @@ struct StoredActivity {
     var team: Int
     var group: Int
     var player: Int
+    var search: Int
 }
 
 // Initialises the content manager for use throughout the code
-var contentManager: ContentManager = ContentManager(currentOptions: [(-20, "Begin Program", 1)], currentDisplay: "", currentTitle: "Start Application", savedTextfieldInformation: [], savedIntegers: [], savedDropdownInformation: 0, displaySeperate: [], repeatedString: "", returnPoint: 0, exitString: "", storedDropdowns: [], savedText: [], selectedValues: StoredActivity(activity: -1, team: -1, group: -1, player: -1), tableValues: [], selectedDropdownIndex: 0, selectedRow: 0)
+var contentManager: ContentManager = ContentManager(currentOptions: [(-20, "Begin Program", 1)], currentDisplay: "", currentTitle: "Start Application", savedTextfieldInformation: [], savedIntegers: [], savedDropdownInformation: 0, displaySeperate: [], repeatedString: "", returnPoint: 0, exitString: "", storedDropdowns: [], savedText: [], selectedValues: StoredActivity(activity: -1, team: -1, group: -1, player: -1, search: -1), tableValues: [], selectedDropdownIndex: 0, selectedRow: 0)
 
 class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource {
     
@@ -291,7 +292,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             user = User(activities: [], details: UserDetails(username: "", password: ""), playerCount: 0, groupCount: 0, teamCount: 0)
             
             // Reset the contentManager to the basic state but with the currentDisplay kept the same
-            contentManager = ContentManager(currentOptions: [(-20, "Begin Program", 1)], currentDisplay: contentManager.currentDisplay, currentTitle: "Restart Application", savedTextfieldInformation: [], savedIntegers: [], savedDropdownInformation: 0, displaySeperate: [], repeatedString: "", returnPoint: 0, exitString: "", storedDropdowns: [], savedText: [], selectedValues: StoredActivity(activity: -1, team: -1, group: -1, player: -1), tableValues: [], selectedDropdownIndex: 0, selectedRow: 0)
+            contentManager = ContentManager(currentOptions: [(-20, "Begin Program", 1)], currentDisplay: contentManager.currentDisplay, currentTitle: "Restart Application", savedTextfieldInformation: [], savedIntegers: [], savedDropdownInformation: 0, displaySeperate: [], repeatedString: "", returnPoint: 0, exitString: "", storedDropdowns: [], savedText: [], selectedValues: StoredActivity(activity: -1, team: -1, group: -1, player: -1, search: -1), tableValues: [], selectedDropdownIndex: 0, selectedRow: 0)
             
         case -8: break
         case -7: break
@@ -323,7 +324,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Create a button for viewing activities, a button to modify settings, and a button for logging out of the account
             contentManager.currentOptions = [(1,"View Activities",1),(0,"Modify System Settings",1),(-9,"Log Out",1)]
             
-            // Use this function to add some test activities: addTestActivities()
+            // Use this function to add some test activities:
+            // addTestActivities()
             
             saveGameData()
         case 1: // View Activities
@@ -418,7 +420,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentTitle = "Activity Created"
             contentManager.currentDisplay = "Congratulations, you have successfully created the activity \(contentManager.savedTextfieldInformation[0]). This activity has \(contentManager.tableValues.count) statistics being tracked, and uses player storage Option \(sender.titleLabel!.text!.last!)"
             // Create Activity Here
-            let newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], storageType: 0, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall Statistics", statistics: []), overallStatistics: [])
+            let newActivity: Activity = Activity(name: contentManager.savedTextfieldInformation[0], storageType: 0, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall Statistics", statistics: []), overallStatistics: [], searchRules: [])
             
             // Add statistics and values to the activity
             for (title,value) in contentManager.tableValues {
@@ -444,6 +446,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.selectedValues.group = -1
             contentManager.selectedValues.team = -1
             contentManager.selectedValues.player = -1
+            contentManager.selectedValues.search = -1
             
             // Set the selected activity to whichever value the user selected in the dropdown menu
             if sender.titleLabel!.text == "View Activity" {
@@ -458,7 +461,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             
             // Create a button for viewing the activity, and a button for viewing the players in the activity
-            contentManager.currentOptions = [(21,"View Activity Details",1), (12,"View All Players",1)]
+            contentManager.currentOptions = [(21,"View Activity Details",1)]
+            
+            // And let them view the players
+            contentManager.currentOptions.append((12,"View All Players",1))
             
             switch useActivity.storageType {
                 // If the activity has groups and teams, make a button for each of those
@@ -469,6 +475,11 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             default: break
             }
             
+            // If the player has a search rule then display them
+            if !useActivity.searchRules.isEmpty {
+                contentManager.currentOptions.append((60,"View Saved Searches",1))
+            }
+            
             // Add a button to exit the page
             contentManager.currentOptions += [(1,"Exit Menu",1)]
             
@@ -477,6 +488,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Reset the team and player values to avoid later issues
             contentManager.selectedValues.team = -1
             contentManager.selectedValues.player = -1
+            contentManager.selectedValues.search = -1
             
             // Get the activity as it's own constant for ease of use
             let activity: Activity = user.activities[contentManager.selectedValues.activity]
@@ -511,6 +523,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Reset the team and player values to avoid later issues
             contentManager.selectedValues.team = -1
             contentManager.selectedValues.player = -1
+            contentManager.selectedValues.search = -1
             
             // Set the selected activity to whichever value the user selected in the dropdown menu
             if sender.titleLabel!.text == "View Group" {
@@ -613,6 +626,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // Reset the team and player values to avoid later issues
             contentManager.selectedValues.player = -1
+            contentManager.selectedValues.search = -1
             
             // Set the selected activity to whichever value the user selected in the dropdown menu
             if sender.titleLabel!.text == "View Team" {
@@ -675,6 +689,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     let team: Team = group.teams[contentManager.selectedValues.team]
                     displayPeople = team.people
                 }
+            case "View Players For Rule":
+                contentManager.selectedValues.search = contentManager.savedDropdownInformation
+                
+                let activity: Activity = user.activities[contentManager.selectedValues.activity]
+                displayPeople = activity.searchRules[contentManager.selectedValues.search].players
+                
+                
             case "View All Players In Group":
                 let activity: Activity = user.activities[contentManager.selectedValues.activity]
                 let group: Group = activity.groups[contentManager.selectedValues.group]
@@ -1761,8 +1782,6 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Save the data since it's now corrected
             saveGameData()
         case 52:
-            contentManager.savedTextfieldInformation = [sender.titleLabel!.text!]
-            
             contentManager.currentTitle = "Select Search Type"
             contentManager.currentDisplay = "Would you like to perform a Specific Search or a General Search?\n\nSpecific Search means you will be able to set very specific constraints, whereas a General Search will mostly just sort values or return singular players"
             
@@ -1802,7 +1821,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // Table, Text Field, Input Button, View Button, Quit Button
             // 9, 2, 1, 1, 1
-            contentManager.currentOptions = [(0,"Current Rules",9),(0,"New Rule",2),(57,"Input Rule",1), (57,"Remove Rule",1), (58,"View Players From Rule",1),(57,"Exit Menu",1)]
+            contentManager.currentOptions = [(0,"Current Rules",9),(0,"New Rule",2),(57,"Input Rule",1), (57,"Remove Rule",1), (58,"Finalise Search",1),(57,"Exit Menu",1)]
             
             // Get the activity
             let activity: Activity = user.activities[contentManager.selectedValues.activity]
@@ -1839,7 +1858,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 contentManager.savedTextfieldInformation.removeLast()
                 // If they then still have values remaining, remove them
-                if contentManager.savedTextfieldInformation.count > 1 {
+                if contentManager.savedTextfieldInformation.count > 0 {
                     contentManager.savedTextfieldInformation.removeLast()
                 }
                 
@@ -1910,11 +1929,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
             
             // Make sure that the user actually has players that would be impacted by this search
-            if !usePlayers.isEmpty && contentManager.savedTextfieldInformation.count != 0 && contentManager.savedTextfieldInformation.count != 1 {
+            if !usePlayers.isEmpty && contentManager.savedTextfieldInformation.count != 0 {
                 
                 // Handle their other inputs
                 var searchSplit: [String] = contentManager.savedTextfieldInformation
-                searchSplit.removeFirst()
                 
                 // If they have actual inputs for rules then run them
                 if searchSplit.count != 0 {
@@ -1933,10 +1951,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Let the player know how many players are left after they add or remove a rule
             contentManager.currentDisplay += "\(usePlayers.count)"
             
-            if contentManager.savedTextfieldInformation.count == 1 {
+            if contentManager.savedTextfieldInformation.count == 0 {
                 contentManager.tableValues = [("Placeholder","Placeholder")]
             }
-            
         case 58: // View Players From Search
             // Get the activity
             let activity: Activity = user.activities[contentManager.selectedValues.activity]
@@ -1974,19 +1991,32 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             runSearches(usePlayers: &usePlayers, rules: ruleList, activity: activity)
             
             // Add the new rule to the activity
-            user.activities[contentManager.selectedValues.activity].searchRules.append(SearchRule(rules: ruleList, players: usePlayers))
+            user.activities[contentManager.selectedValues.activity].searchRules.append(SearchRule(name: "", rules: ruleList, players: usePlayers))
             
-            contentManager.currentTitle = ""
-            contentManager.currentDisplay = ""
-            contentManager.currentOptions = []
+            contentManager.currentTitle = "Assign Search Name"
+            contentManager.currentDisplay = "Please input a name for this search into the below text field"
+            contentManager.currentOptions = [(0,"Search Name",2),(59,"Input Name",1)]
         case 59:
-            contentManager.currentTitle = ""
-            contentManager.currentDisplay = ""
-            contentManager.currentOptions = []
+            let activity = user.activities[contentManager.selectedValues.activity]
+            activity.searchRules[activity.searchRules.count - 1].name = contentManager.savedTextfieldInformation.last!
+            saveGameData()
+            
+            contentManager.currentTitle = "Implement Search"
+            contentManager.currentDisplay = "This search has successfully been saved to your activity. Please press the \"View Saved Searches\" button to view your searches"
+            contentManager.currentOptions = [(60,"View Saved Searches",1)]
         case 60:
-            contentManager.currentTitle = ""
-            contentManager.currentDisplay = ""
-            contentManager.currentOptions = []
+            contentManager.currentTitle = "View Saved Searches"
+            contentManager.currentDisplay = "Please select a search rule from the below table, and press the \"View Players For Rule\" button to view the selection"
+            contentManager.currentOptions = [(0,"Search Rule",7),(12,"View Players For Rule",1),(7,"Exit Menu",1)]
+            
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            
+            // Display the search rules on a table view
+            contentManager.tableValues = []
+            for searchRule in activity.searchRules {
+                contentManager.tableValues.append((title: "\(searchRule.name)", value: "\(searchRule.players.count) Players"))
+            }
+            
         case 61:
             contentManager.currentTitle = ""
             contentManager.currentDisplay = ""

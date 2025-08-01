@@ -163,7 +163,7 @@ func checkSaveFile() {
 }
 
 func resetData() {
-    contentManager = ContentManager(currentOptions: [(-20, "Begin Program", 1)], currentDisplay: "", currentTitle: "Start Application", savedTextfieldInformation: [], savedIntegers: [], savedDropdownInformation: 0, displaySeperate: [], repeatedString: "", returnPoint: 0, exitString: "", storedDropdowns: [], savedText: [], selectedValues: StoredActivity(activity: 0, team: 0, group: 0, player: 0), tableValues: [], selectedDropdownIndex: 0, selectedRow: 0)
+    contentManager = ContentManager(currentOptions: [(-20, "Begin Program", 1)], currentDisplay: "", currentTitle: "Start Application", savedTextfieldInformation: [], savedIntegers: [], savedDropdownInformation: 0, displaySeperate: [], repeatedString: "", returnPoint: 0, exitString: "", storedDropdowns: [], savedText: [], selectedValues: StoredActivity(activity: -1, team: -1, group: -1, player: -1, search: -1), tableValues: [], selectedDropdownIndex: 0, selectedRow: 0)
     user = User(activities: [], details: UserDetails(username: "", password: ""), playerCount: 0, groupCount: 0, teamCount: 0)
 }
 
