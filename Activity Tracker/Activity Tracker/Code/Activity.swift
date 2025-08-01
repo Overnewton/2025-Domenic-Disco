@@ -21,6 +21,7 @@ class Activity: Codable {
     var people: [Person]
     var groups: [Group]
     var teams: [Team]
+    var searchRules: [SearchRule]
     var combined: StatisticHolder
     
     // Array of just the statistics with no values associated
@@ -115,6 +116,11 @@ class Activity: Codable {
         self.combined = combined
         self.overallStatistics = overallStatistics
     }
+}
+
+struct SearchRule: Codable {
+    var rules: [String]
+    var players: [Person]
 }
 
 // Used to hold groups of people within an activity
@@ -400,6 +406,43 @@ class Calculation: Codable {
     }
 }
 
+func addTestActivities() {
+    for index in 1...4 {
+        user.activities.append(Activity(name: "Activity \(index)", storageType: 1, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall", statistics: []), overallStatistics: []))
+        for index in 1...Int.random(in: 5...12) {
+            let newStatistic: Statistic = Statistic(name: "Statistic\(index)", value: Float.random(in: 0...5000), rule: [])
+            user.activities[user.activities.count - 1].overallStatistics.append(newStatistic)
+        }
+        for _ in 1...Int.random(in: 100...300) {
+            user.activities.last!.people.append(createTestPlayer(for: user.activities.last!))
+        }
+    }
+}
+
+func createTestPlayer(for activity: Activity) -> Person {
+    let returnPerson: Person = Person(details: PersonDetails(name: "Player \(activity.people.count)", uniqueID: user.playerCount, group: FixedStorage(index: -1, name: "", id: -1), team: FixedStorage(index: -1, name: "", id: -1)), currentStatistics: StatisticHolder(description: "Current", statistics: []), pastPeriods: [:])
+    user.playerCount += 1
+    
+    returnPerson.currentStatistics.statistics = activity.overallStatistics
+    
+    for index in 1...5 {
+        returnPerson.pastPeriods[index] = StatisticHolder(description: "Period \(index)", statistics: activity.overallStatistics)
+        for (index2,statistic) in returnPerson.pastPeriods[index]!.statistics.enumerated() {
+            if statistic.rule.isEmpty {
+                returnPerson.pastPeriods[index]?.statistics[index2].value *= Float.random(in: 0.5...3)
+            } else {
+                let calculation: Calculation = (returnPerson.pastPeriods[index]?.statistics[index].rule[0])!
+                
+                returnPerson.pastPeriods[index]?.statistics[index2].value = calculation.run(inputPerson: (returnPerson.pastPeriods[index])!)
+            }
+        }
+    }
+    
+    returnPerson.calculateCurrentStatistics()
+    
+    return returnPerson
+}
+
 // An operation means math stuff
 enum Operation: Codable {
     case add, subtract, multiply, divide
@@ -499,5 +542,140 @@ extension [(String, String)] {
             returnArray.append((value1.lowercased(),value2))
         }
         return returnArray
+    }
+}
+
+
+// Function to run a complex search using an array of rules
+func runSearches(usePlayers: inout [Person], rules: [String], activity: Activity) {
+    
+    // Seperate the rules into sorts and searches
+    var sortRules: [String] = []
+    var searchRules: [String] = []
+    
+    // Seperate them using the first word of the string
+    for value in rules {
+        if value.components(separatedBy: " ")[0].lowercased() == "sort" {
+            sortRules.append(value)
+        } else {
+            searchRules.append(value)
+        }
+    }
+    
+    // Run through each of the searches
+    for rule in searchRules {
+        // Get the rule into a workable form
+        var ruleElements: [String] = rule.components(separatedBy: " ")
+        
+        // Get the indexes of the players who failed the check
+        var indexArray: [Int] = []
+        
+        // Array for if the user uses a "~" check
+        var valueArray: [(Float,Int)] = []
+        
+        // Run each player through the check
+        for (index,player) in usePlayers.enumerated() {
+            
+            // Get the value that we are checking
+            let statisticIndex: Int = activity.overallStatistics.searchNamesFor(input: ruleElements[1])
+            let statisticValue: Float = player.currentStatistics.statistics[statisticIndex].value
+            
+            // Perform the opposite calculation to what the user wants, and if they pass it then they fail the actual one
+            switch ruleElements[2] {
+                
+                // If the user wants greater than, if it's less than or equal to, then remove it
+            case ">": if statisticValue <= Float(ruleElements[3])! {
+                indexArray.append(index)
+            }
+                
+                // If the user wants less than, if it's greater than or equal to, then remove it
+            case "<": if statisticValue >= Float(ruleElements[3])! {
+                indexArray.append(index)
+            }
+                
+                // If the user wants equal to, if it's not equal to, then remove it
+            case "=": if statisticValue != Float(ruleElements[3]) {
+                indexArray.append(index)
+            }
+                
+                // If the user wants not equal to, if it's equal to, then remove it
+            case "!=": if statisticValue == Float(ruleElements[3])! {
+                indexArray.append(index)
+            }
+                
+                // If the user wants greater than or equal to, if it's less than, then remove it
+            case ">=": if statisticValue < Float(ruleElements[3])! {
+                indexArray.append(index)
+            }
+                
+                // If the user wants less than or equal to, if it's greater than, then remove it
+            case "<=": if statisticValue > Float(ruleElements[3])! {
+                indexArray.append(index)
+            }
+                
+                // This one is more complex, so it'll be explained about 7 lines later
+            case "~":
+                valueArray.append((statisticValue,index))
+            default: break
+            }
+        }
+        
+        // If they use a closest to check, then sort all the values in descending order
+        if ruleElements[2] == "~" && !usePlayers.isEmpty {
+            
+            valueArray.sort {$0.0 > $1.0}
+            
+            // Keep track of the crucial values
+            var smallestDifference: Float = 0
+            var smallestDifferenceIndex: Int = 0
+            
+            // Run through all of the values stored for the players
+            for (index,value) in valueArray.enumerated() {
+                
+                // If the absolute difference between selected value and their value is bigger than the latest one then break
+                if abs(value.0 - Float(ruleElements[3])!) > smallestDifference && smallestDifference != 0 {
+                    // This is because if the abs value increases, then clearly the values are getting further away from the actual value, and so we should break here
+                    break
+                    
+                    // If the absolute value is smaller than the last smallest value, set the new values accordingly
+                } else {
+                    smallestDifference = abs(value.0 - Float(ruleElements[3])!)
+                    smallestDifferenceIndex = index
+                }
+            }
+            
+            // Get the index
+            let closestPlayerIndex: Int = valueArray[smallestDifferenceIndex].1
+            
+            // The only player to keep is the one player who is closest
+            usePlayers = [usePlayers[closestPlayerIndex]]
+            
+            // If it wasn't a closest to, then run the removal process
+        } else {
+            // Run through each of the players to remove
+            for (offsetIndex,index) in indexArray.enumerated() {
+                
+                // Remove it at index - offset, since if I remove 1 person, the other indexes will shift by 1
+                usePlayers.remove(at: index - offsetIndex)
+            }
+        }
+    }
+    
+    // Run through each of the sorting rules
+    for rule in sortRules {
+        // Get the rule elements
+        var ruleElements: [String] = rule.components(separatedBy: " ")
+        
+        // Get the statistic to sort on
+        let statisticIndex: Int = activity.overallStatistics.searchNamesFor(input: ruleElements[1])
+        
+        // If it's to be sorted in descending order sort in descending order
+        if ruleElements[2] == ">" {
+            usePlayers.sort {$0.currentStatistics.statistics[statisticIndex].value > $1.currentStatistics.statistics[statisticIndex].value}
+            
+            // If it's to be sorted in ascending order sort in ascending order
+        } else {
+            usePlayers.sort {$0.currentStatistics.statistics[statisticIndex].value < $1.currentStatistics.statistics[statisticIndex].value}
+        }
     }
 }
