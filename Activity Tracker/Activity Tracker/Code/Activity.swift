@@ -1,27 +1,54 @@
 import Foundation
 
+// Initial declaration of the user, who is the store of every permanent value within the code and is being saved/loaded
 var user: User = User(activities: [], details: UserDetails(username: "", password: ""), playerCount: 0, groupCount: 0, teamCount: 0)
 
+// Struct for the user
+//      Could be a class, but I prefer struct
 struct User: Codable {
+    // Stores all of the users activities
     var activities: [Activity]
+    
+    // Stores their account details
     var details: UserDetails
+    
+    // Stores their counts for later use in creation with unique ID's
+    //          Could be their own struct that stores it, but it's fine as just values here
     var playerCount: Int
     var groupCount: Int
     var teamCount: Int
 }
 
+// Stores the users account details
 struct UserDetails: Codable {
     var username: String
     var password: String
 }
 
+// Stores an activity and it's associated values
+//      Stores it using class since it's never being referenced while not needing to be changed in value
 class Activity: Codable {
+    
+    // Stores the activities name
     var name: String
+    
+    // Stores whether it has teams, groups, etc.
     var storageType: Int
+    
+    // Stores the overall players for the activity
     var people: [Person]
+    
+    // Stores the groups for the activity
     var groups: [Group]
+    
+    // Stores the overall teams for the activity
     var teams: [Team]
+    
+    // Stores any search rules that the player has created for this activity
     var searchRules: [SearchRule]
+    
+    // Stores the total combined statistics across every player in the group so that you can view this stuff
+    //          Like maybe you want to know when your group reaches a total of 10000 kills, or when the average kdr across the whole activity is above 1
     var combined: StatisticHolder
     
     // Array of just the statistics with no values associated
@@ -39,6 +66,62 @@ class Activity: Codable {
         }
         return -1
     }
+    
+    // Function to get a teams postion within the activities teams
+    func searchTeamsFor(ID: Int) -> Int {
+        // Run through all the teams
+        for (index,team) in teams.enumerated() {
+            
+            // If the ID matches then return their index
+            if team.uniqueID == ID {
+                return index
+            }
+        }
+        return -1
+    }
+    
+    // Function to completely remove a team from an activity
+    func removeTeam(_ team: Team) {
+        // Remove them from the groups
+        for group in groups {
+            let teamCheck: Int = group.searchTeamsFor(ID: team.uniqueID)
+            if teamCheck != -1 {
+                group.teams.remove(at: teamCheck)
+            }
+        }
+        
+        // Remove them from the activity
+        let teamCheck: Int = searchTeamsFor(ID: team.uniqueID)
+        if teamCheck != -1 {
+            teams.remove(at: teamCheck)
+        }
+    }
+    
+    // Function to completely remove a player from an activity
+    func removePerson(_ player: Person) {
+        // Remove them from the teams
+        for team in teams {
+            let playerCheck: Int = team.searchPlayersFor(ID: player.details.uniqueID)
+            if playerCheck != -1 {
+                team.people.remove(at: playerCheck)
+            }
+        }
+        
+        // Remove them from the groups
+        for group in groups {
+            let playerCheck: Int = group.searchPlayersFor(ID: player.details.uniqueID)
+            if playerCheck != -1 {
+                group.people.remove(at: playerCheck)
+            }
+        }
+        
+        // Remove them from the activity
+        let playerCheck: Int = searchPlayersFor(ID: player.details.uniqueID)
+        if playerCheck != -1 {
+            people.remove(at: playerCheck)
+        }
+    }
+    
 
     // Function to calculate the current total statistics of an activity
     func calculateCurrentStatistics() {
@@ -55,6 +138,7 @@ class Activity: Codable {
                 
                 // If the statistic is a pure value then add it to the overall tally
                 if statistic.rule.isEmpty {
+                    print(self.combined.statistics.count, index)
                     self.combined.statistics[index].value += statistic.value
                 }
             }
@@ -73,6 +157,7 @@ class Activity: Codable {
     func addStatistic(_ newStatistic: Statistic) {
         // Add the statistic to the activity
         overallStatistics.append(newStatistic)
+        combined.statistics.append(newStatistic)
         
         // Check if this statistic is an automatic calculation statistic
         if !newStatistic.rule.isEmpty {
@@ -105,6 +190,7 @@ class Activity: Codable {
         }
     }
     
+    // Init because classes require it
     init(name: String, storageType: Int, people: [Person], groups: [Group], teams: [Team], combined: StatisticHolder, overallStatistics: [Statistic], searchRules: [SearchRule]) {
         self.name = name
         self.storageType = storageType
@@ -117,9 +203,15 @@ class Activity: Codable {
     }
 }
 
+// Struct to store a search rule
 struct SearchRule: Codable {
+    // Stores the name the user used for it
     var name: String
+    
+    // Stores the rules used in the search
     var rules: [String]
+    
+    // Stores the players who are from that search
     var players: [Person]
 }
 
@@ -129,13 +221,39 @@ class Group: Codable {
     var name: String // Group name
     var people: [Person] // The people in the group
     var teams: [Team] // The teams within the group
-    var uniqueID: Int
+    var uniqueID: Int // The groups unique identifier incase group/team deletion
     
     init(name: String, people: [Person], teams: [Team], uniqueID: Int) {
         self.name = name
         self.people = people
         self.teams = teams
         self.uniqueID = uniqueID
+    }
+    
+    // Function to get a players postion within the groups's players
+    func searchPlayersFor(ID: Int) -> Int {
+        // Run through all the players
+        for (index,player) in people.enumerated() {
+            
+            // If the ID matches then return their index
+            if player.details.uniqueID == ID {
+                return index
+            }
+        }
+        return -1
+    }
+    
+    // Function to get a teams postion within the groups's teams
+    func searchTeamsFor(ID: Int) -> Int {
+        // Run through all the teams
+        for (index,team) in teams.enumerated() {
+            
+            // If the ID matches then return their index
+            if team.uniqueID == ID {
+                return index
+            }
+        }
+        return -1
     }
 }
 
@@ -144,12 +262,25 @@ class Group: Codable {
 class Team: Codable {
     var name: String // Team name
     var people: [Person] // The people in the team
-    var uniqueID: Int
+    var uniqueID: Int // The teams unique identifier incase group/team deletion
     
     init(name: String, people: [Person], uniqueID: Int) {
         self.name = name
         self.people = people
         self.uniqueID = uniqueID
+    }
+    
+    // Function to get a players postion within the teams's players
+    func searchPlayersFor(ID: Int) -> Int {
+        // Run through all the players
+        for (index,player) in people.enumerated() {
+            
+            // If the ID matches then return their index
+            if player.details.uniqueID == ID {
+                return index
+            }
+        }
+        return -1
     }
 }
 
@@ -256,6 +387,7 @@ class Person: Codable {
     }
 }
 
+// 
 struct PersonDetails: Codable {
     var name: String
     var uniqueID: Int
@@ -286,14 +418,25 @@ struct PersonDetails: Codable {
     }
 }
 
+// Structure to store a title of an event/period and then the associated stats
 struct StatisticHolder: Codable {
+    // Description/name of the event/period as a string
     var description: String
+    
+    // Statistics as an array since we can have multiple
     var statistics: [Statistic]
 }
 
+// Structure that holds a value and a name, and potentially a rule
+//      Struct not class since we reuse the statistic for multiple people, and if it was a class, they'd all be sharing the same value and not just copying the statistic.
 struct Statistic: Codable {
+    // Statistic name as a string
     var name: String
+    
+    // Value as a float since potential division or use of decimal numbers
     var value: Float
+    
+    // Calculation as array, since some people can have no calculations
     var rule: [Calculation]
 }
 
@@ -314,28 +457,15 @@ extension [Statistic] {
     }
 }
 
-
-extension String {
-    func toClassification() -> StatisticClass {
-        switch self {
-        case "calculated": return .calculated
-        case "permanent": return .permanent
-        case "input": return .input
-        default: return .input
-        }
-    }
-}
-
-
-enum StatisticClass: Codable {
-    case calculated, permanent, input
-}
-
 // A class used to store automatic calculations for variables
 class Calculation: Codable {
-    // Stores the first variable
+    // Stores the first term as a string since it might be a value or a statistic
     var primaryTerm: String
+    
+    // Stores the Opertion as an Opertion value, since it's either addition, multiplication, division or subtraction
     var operation: Operation
+    
+    // Stores the second term as a string since it might be a value or a statistic
     var secondaryTerm: String
     
     init(primaryTerm: String, operation: Operation, secondaryTerm: String) {
@@ -344,10 +474,12 @@ class Calculation: Codable {
         self.secondaryTerm = secondaryTerm
     }
     
+    // Function that easily summarises a calculation into text
     func toString() -> String {
         return "\(primaryTerm) \(operation.toString()) \(secondaryTerm)"
     }
     
+    // Function to run a calculation for a given person
     func run(inputPerson: StatisticHolder) -> Float {
         // Declare the two values to work with
         var primaryValue: Float?
@@ -406,12 +538,14 @@ class Calculation: Codable {
     }
 }
 
+// Function used for testing that adds 4 random activities to your user and fills the activities with players and statistics
 func addTestActivities() {
     for index in 1...4 {
         user.activities.append(Activity(name: "Activity \(index)", storageType: 1, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall", statistics: []), overallStatistics: [], searchRules: []))
         for index in 1...Int.random(in: 5...12) {
             let newStatistic: Statistic = Statistic(name: "Statistic\(index)", value: Float.random(in: 0...5000), rule: [])
             user.activities[user.activities.count - 1].overallStatistics.append(newStatistic)
+            user.activities[user.activities.count - 1].combined.statistics.append(newStatistic)
         }
         for _ in 1...Int.random(in: 100...300) {
             user.activities.last!.people.append(createTestPlayer(for: user.activities.last!))
@@ -419,6 +553,7 @@ func addTestActivities() {
     }
 }
 
+// Function that creates a random player for a given activity just for use in testing that the application works
 func createTestPlayer(for activity: Activity) -> Person {
     let returnPerson: Person = Person(details: PersonDetails(name: "Player \(activity.people.count)", uniqueID: user.playerCount, group: FixedStorage(index: -1, name: "", id: -1), team: FixedStorage(index: -1, name: "", id: -1)), currentStatistics: StatisticHolder(description: "Current", statistics: []), pastPeriods: [:])
     user.playerCount += 1
@@ -443,10 +578,14 @@ func createTestPlayer(for activity: Activity) -> Person {
     return returnPerson
 }
 
-// An operation means math stuff
+
+// Easy use of values for automatic calculations
 enum Operation: Codable {
+    // Make them the 4 basic operators
+    //         No complex stuff like power of or logarithm or anything complex like that since simplicity
     case add, subtract, multiply, divide
     
+    // Function that turns an operation into it's most basic and well known text representation
     func toString() -> String {
         switch self {
         case .add: return "+"
@@ -456,6 +595,7 @@ enum Operation: Codable {
         }
     }
 }
+
 
 extension String {
     // Function to validate components of an automatic calculation
@@ -535,7 +675,9 @@ extension [String] {
     }
 }
 
+// Function to allow lowercasing only the title values in my contentManager.tableValues
 extension [(String, String)] {
+    // Set all of the .0 values to lowercase
     func lowercased() -> [(String,String)] {
         var returnArray: [(String,String)] = []
         for (value1,value2) in self {

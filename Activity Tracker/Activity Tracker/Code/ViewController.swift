@@ -425,6 +425,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Add statistics and values to the activity
             for (title,value) in contentManager.tableValues {
                 newActivity.overallStatistics.append(Statistic(name: title, value: (Float(value) ?? 0), rule: []))
+                newActivity.combined.statistics.append(Statistic(name: title, value: 0, rule: []))
             }
             
             // Set the activity type
@@ -505,7 +506,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.currentDisplay = "Please select the group that you want to view using the dropdown menu. Or press \"Create New Group\" to create a new group."
                 
                 // Create a tbl-dropdown for the groups, a button to view a group, a button to create a group, and a button to exit the page
-                contentManager.currentOptions = [(0,"Group",7),(9,"View Group",1),(37,"Create New Group",1),(7,"Exit Menu",1)]
+                contentManager.currentOptions = [(0,"Group",7),(9,"View Group",1),(61,"Delete Selected Group",1),(37,"Create New Group",1),(7,"Exit Menu",1)]
                 
                 // Set the table view to show groups and set the dropdown to match the tableview
                 contentManager.tableValues = []
@@ -608,7 +609,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.currentDisplay = "Please select the team that you want to view using the dropdown menu. Or press \"Create New Team\" to create a new team."
                 
                 // Create a tbl-dropdown for the groups, a button to view a group, a button to create a group, and a button to exit the page
-                contentManager.currentOptions = [(0,"Team",7),(11,"View Team",1),(41,"Create New Team",1),(7,"Exit Menu",1)]
+                contentManager.currentOptions = [(0,"Team",7),(11,"View Team",1),(68,"Delete Selected Group",1),(41,"Create New Team",1),(7,"Exit Menu",1)]
                 
                 // Display the players names in the tableValues
                 contentManager.tableValues = []
@@ -795,7 +796,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentDisplay = "Please enter the statistics for player \(contentManager.savedTextfieldInformation[0]) using the text field."
             
             // Create a tbl-dropdown-textField for the statistic, and a button to input the statistics
-            contentManager.currentOptions = [(0,"Statistic",6),(17,"Finalise Statistics",1)]
+            contentManager.currentOptions = [(0,"Statistic",6),(17,"Finalise Statistics",1),(17,"Exit Without Statistics",1)]
             
             // Have the tableview show all of the players statistics, with their basic values
             contentManager.tableValues = []
@@ -817,7 +818,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             user.playerCount += 1
             
             // If the player is being created with stats then do that here
-            if !contentManager.tableValues.isEmpty {
+            if !contentManager.tableValues.isEmpty || sender.titleLabel!.text == "Exit Without Statistics" {
                 
                 // Store the index of auto rules and the index of the table
                 var recordedIndex: [Int] = []
@@ -1782,24 +1783,21 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Save the data since it's now corrected
             saveGameData()
         case 52:
-            contentManager.currentTitle = "Select Search Type"
-            contentManager.currentDisplay = "Would you like to perform a Specific Search or a General Search?\n\nSpecific Search means you will be able to set very specific constraints, whereas a General Search will mostly just sort values or return singular players"
+            contentManager.currentTitle = "Search Menu"
+            contentManager.currentDisplay = "Would you like to create a new search?"
+            contentManager.currentOptions = [(53,"Create New Search",1), (12,"Exit Menu",1)]
             
+            // Check if the user already has search rule and adjust display accordingly
+            if !user.activities[contentManager.selectedValues.activity].searchRules.isEmpty {
+                contentManager.currentDisplay.removeLast()
+                contentManager.currentDisplay = "Would you like to view your current searches, or create a new search?"
+                contentManager.currentOptions.insert((60,"View Search Rules",0), at: 0)
+            }
             // Let the player exit to the menu
-            contentManager.currentOptions = [(53,"Specific",1)]
-            
-            
-            
-            // switch contentManager.savedTextfieldInformation[0] {
-            // case "Search Players":
-            // case "Search Group":
-            // case "Search Team":
-            // default: break
-            // }
             
         case 53:
-            contentManager.currentTitle = "How To Specific Search"
-            contentManager.currentDisplay = "Specific Searches can use multiple requirements at once, you simply write multiple general searches and the acceptable players will be repeatedly reduced.\n\nYour requirements can be either a Sort or a Search, sort will order the players, and search will filter the players.\n\nIf you wish to learn how to write out your search or sort, please press \"Tutorial\", otherwise if you're ready to write your rule, press \"Create Search\""
+            contentManager.currentTitle = "How To Search"
+            contentManager.currentDisplay = "Searches can use multiple requirements at once, you simply write multiple general searches and the acceptable players will be repeatedly reduced.\n\nYour requirements can be either a Sort or a Search, sort will order the players, and search will filter the players.\n\nIf you wish to learn how to write out your search or sort, please press \"Tutorial\", otherwise if you're ready to write your rule, press \"Create Search\""
             contentManager.currentOptions = [(54,"Tutorial",1),(57,"Create Search",1)]
             
         case 54:
@@ -2017,17 +2015,56 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.tableValues.append((title: "\(searchRule.name)", value: "\(searchRule.players.count) Players"))
             }
             
-        case 61:
-            contentManager.currentTitle = ""
-            contentManager.currentDisplay = ""
-            contentManager.currentOptions = []
-        case 62:
-            contentManager.currentTitle = ""
-            contentManager.currentDisplay = ""
-            contentManager.currentOptions = []
-        case 63:
-            contentManager.currentTitle = ""
-            contentManager.currentDisplay = ""
+        case 61: // Confirm Delete Group
+            // Save the group index that they want to delete
+            contentManager.selectedValues.group = contentManager.savedDropdownInformation
+            
+            // Confirm that they actually want to delete the group
+            contentManager.currentTitle = "Group Deletion"
+            contentManager.currentDisplay = "Are you sure you want to delete the group \(contentManager.tableValues[contentManager.savedDropdownInformation].title)"
+            contentManager.currentOptions = [(62, "Yes", 1)]
+        case 62: // Delete Group Information Confirmation
+            contentManager.currentTitle = "Group Deletion"
+            contentManager.currentDisplay = "What would you like to do with the players and teams associated with that group?"
+            contentManager.currentOptions = [(63, "Don't Delete Any", 1), (63, "Delete Teams", 1), (63, "Delete Players", 1), (63, "Delete All", 1), (61, "Exit Menu", 1)]
+        case 63: // Delete Group
+            contentManager.currentTitle = "Deleted Group"
+            contentManager.currentDisplay = "The group has successfully been deleted"
+            
+            // Get the group and activities
+            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let group: Group = activity.groups[contentManager.selectedValues.group]
+            
+            // Figure out what they wanted to do with the associated teams and players
+            switch sender.titleLabel!.text {
+            case "Don't Delete Any": break
+                
+            // If they want the teams deleted then remove the teams from the activity
+            case "Delete Teams":
+                for team in group.teams {
+                    activity.removeTeam(team)
+                }
+            
+            // If they want the players deleted then remove the players from the activity
+            case "Delete Players":
+                for player in group.people {
+                    activity.removePerson(player)
+                }
+                
+            // If they want the teams and players deleted then remove the teams and players from the activity
+            case "Delete All":
+                for player in group.people {
+                    activity.removePerson(player)
+                }
+                for team in group.teams {
+                    activity.removeTeam(team)
+                }
+            default: break
+            }
+            
+            
+            
+            
             contentManager.currentOptions = []
         case 64: break
         case 65: break
@@ -2036,18 +2073,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 68: break
         case 69: break
         default: break
-            // contentManager.currentDisplay = "Select New List -> Use savedTextField stuff"
-            // contentManager.currentDisplay = "Handle Change Group -> Display Success Or Failure Messages -> Apply New Stats"
-            // contentManager.currentDisplay = "Viewing Player"
-            // contentManager.currentDisplay = "Select New Group / Team -> Send from viewing player"
-            // contentManager.currentDisplay = "Handle Change Group -> Display Success Or Failure Messages -> Apply New Stats"
-            // contentManager.currentDisplay = "Create New Automatic Statistic Name"
-            // contentManager.currentDisplay = "Declare Values and Operations Bit By Bit"
         }
     }
-    
-    
-    
     
     // Function to display a system message to the user
     func alert(message: String, title: String) {
@@ -2056,12 +2083,6 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         alert.addAction(okButton)
         self.present(alert, animated: true, completion: nil)
     }
-    
-    
-    
-    
-    
-    
     
     // Code that allows keyboard use with swift projects so that if this application is being run on a macbook that it could still be used
     override var keyCommands: [UIKeyCommand]? {
