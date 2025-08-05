@@ -455,7 +455,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
             
             // Get the activity as it's own constant for ease of use
-            let useActivity: Activity = user.activities[contentManager.selectedValues.activity]
+            let useActivity: Activity = getSelectedActivity()
             
             contentManager.currentTitle = "Viewing Activity"
             contentManager.currentDisplay = "You are currently viewing \(useActivity.name), an activity that is tracking \(useActivity.overallStatistics.count) statistics for a total of \(useActivity.people.count) people"
@@ -492,7 +492,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.selectedValues.search = -1
             
             // Get the activity as it's own constant for ease of use
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             
             // If no groups exist then have the user make a new group
             if activity.groups.isEmpty {
@@ -532,8 +532,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
             
             // Get the activity as it's own constant for ease of use
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
-            let group: Group = activity.groups[contentManager.selectedValues.group]
+            let activity: Activity = getSelectedActivity()
+            let group: Group = getSelectedGroup()
             
             contentManager.currentDisplay = "You are currently viewing \(group.name), a group that has \(group.people.count) people, and \(group.teams.count) teams."
             
@@ -559,7 +559,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             var noTeams: Bool = false
             
             // Declare activity here for ease of use
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             
             // Declare the array of teams
             var useTeams: [Team] = []
@@ -581,7 +581,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 } else {
                     
                     // Set group here for ease of use
-                    let group: Group = activity.groups[contentManager.selectedValues.group]
+                    let group: Group = getSelectedGroup()
                     if group.teams.isEmpty {
                         noTeams = true
                     } else {
@@ -609,7 +609,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.currentDisplay = "Please select the team that you want to view using the dropdown menu. Or press \"Create New Team\" to create a new team."
                 
                 // Create a tbl-dropdown for the groups, a button to view a group, a button to create a group, and a button to exit the page
-                contentManager.currentOptions = [(0,"Team",7),(11,"View Team",1),(68,"Delete Selected Group",1),(41,"Create New Team",1),(7,"Exit Menu",1)]
+                contentManager.currentOptions = [(0,"Team",7),(11,"View Team",1),(64,"Delete Selected Team",1),(41,"Create New Team",1),(7,"Exit Menu",1)]
                 
                 // Display the players names in the tableValues
                 contentManager.tableValues = []
@@ -635,17 +635,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
             
             // Get the activity as it's own constant for ease of use
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
-            var team: Team?
+            let activity: Activity = getSelectedActivity()
+            var team: Team = getSelectedTeam()
             
-            if contentManager.selectedValues.group != -1 {
-                let group: Group = activity.groups[contentManager.selectedValues.group]
-                team = group.teams[contentManager.selectedValues.team]
-            } else {
-                team = activity.teams[contentManager.selectedValues.team]
-            }
-            
-            contentManager.currentDisplay = "You are currently viewing \(team!.name), a team that has \(team!.people.count) people."
+            contentManager.currentDisplay = "You are currently viewing \(team.name), a team that has \(team.people.count) people."
             
             // Create a button for viewing the activity, and a button for viewing the players in the activity
             contentManager.currentOptions = [(21,"View Team Details",1), (45, "Input Statistics For Team",1), (12,"View Players For Team",1)]
@@ -666,40 +659,36 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             switch sender.titleLabel!.text {
                 // If this is to view all players then display all players for the activity
             case "View All Players":
-                let activity: Activity = user.activities[contentManager.selectedValues.activity]
+                let activity: Activity = getSelectedActivity()
                 displayPeople = activity.people
                 
                 // If this is to view players for a group then display players for the selected group
             case "View Players For Group":
-                let activity: Activity = user.activities[contentManager.selectedValues.activity]
-                let group: Group = activity.groups[contentManager.selectedValues.group]
+                let group: Group = getSelectedGroup()
                 displayPeople = group.people
                 
                 // If this is to view players for a team then display players for the selected team
             case "View Players For Team":
                 // If the user is viewing the players for a team that isn't within a group, then get activity-team
                 if contentManager.selectedValues.group == -1 {
-                    let activity: Activity = user.activities[contentManager.selectedValues.activity]
-                    let team: Team = activity.teams[contentManager.selectedValues.team]
+                    let team: Team = getSelectedTeam()
                     displayPeople = team.people
                     
                     // Otherwise if the user is viewing the players for a team that is within a group, then get activity-group-team
                 } else {
-                    let activity: Activity = user.activities[contentManager.selectedValues.activity]
-                    let group: Group = activity.groups[contentManager.selectedValues.group]
-                    let team: Team = group.teams[contentManager.selectedValues.team]
+                    let team: Team = getSelectedTeam()
                     displayPeople = team.people
                 }
             case "View Players For Rule":
                 contentManager.selectedValues.search = contentManager.savedDropdownInformation
                 
-                let activity: Activity = user.activities[contentManager.selectedValues.activity]
+                let activity: Activity = getSelectedActivity()
                 displayPeople = activity.searchRules[contentManager.selectedValues.search].players
                 
                 
             case "View All Players In Group":
-                let activity: Activity = user.activities[contentManager.selectedValues.activity]
-                let group: Group = activity.groups[contentManager.selectedValues.group]
+                let activity: Activity = getSelectedActivity()
+                let group: Group = getSelectedGroup()
                 displayPeople = group.people
             default: break
             }
@@ -760,7 +749,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             } else {
                 // If name isn't blank, then make sure that no other player within the activity has the same name
                 var dupeName: Bool = false
-                let activity: Activity = user.activities[contentManager.selectedValues.activity]
+                let activity: Activity = getSelectedActivity()
                 for player in activity.people {
                     if player.details.name == contentManager.savedTextfieldInformation[0] {
                         dupeName = true
@@ -800,7 +789,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // Have the tableview show all of the players statistics, with their basic values
             contentManager.tableValues = []
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             for statistic in activity.overallStatistics {
                 if statistic.rule.isEmpty {
                     contentManager.tableValues.append((title: statistic.name, value: String(statistic.value)))
@@ -811,7 +800,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentTitle = "Player Created"
             contentManager.currentDisplay = "The new player, \(contentManager.savedTextfieldInformation[0]), has successfully been created!"
             
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             
             // Create the player
             let newPlayer: Person = Person(details: PersonDetails(name: contentManager.savedTextfieldInformation[0], uniqueID: user.playerCount, group: FixedStorage(index: -1, name: "", id: -1), team: FixedStorage(index: -1, name: "", id: -1)), currentStatistics: StatisticHolder(description: "Current", statistics: []), pastPeriods: [:])
@@ -871,11 +860,11 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // If the player is in a team within a group
             if contentManager.selectedValues.group != -1 && contentManager.selectedValues.team != -1 {
                 // Add the player to the group
-                let group: Group = activity.groups[contentManager.selectedValues.group]
+                let group: Group = getSelectedGroup()
                 group.people.append(newPlayer)
                 
                 // Add the player to the team
-                let team: Team = group.teams[contentManager.selectedValues.team]
+                let team: Team = getSelectedTeam()
                 team.people.append(newPlayer)
                 
                 // Update the players details
@@ -884,20 +873,20 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 // If the player is just in a group
             } else if contentManager.selectedValues.group != -1 {
                 // Add the player to the group
-                let group: Group = activity.groups[contentManager.selectedValues.group]
+                let group: Group = getSelectedGroup()
                 group.people.append(newPlayer)
                 
                 // Update the players details
-                newPlayer.details.getFrom(group)
+                newPlayer.details.getFrom([group])
                 
                 // If the player is just in a team
             } else if contentManager.selectedValues.team != -1 {
                 // Add the player to the team
-                let team: Team = activity.teams[contentManager.selectedValues.team]
+                let team: Team = getSelectedTeam()
                 team.people.append(newPlayer)
                 
                 // Update the players details
-                newPlayer.details.getFrom(team)
+                newPlayer.details.getFrom([team])
             }
             
             saveGameData()
@@ -907,39 +896,12 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
         case 18: // View Player Statistics Screen
             contentManager.currentTitle = "Select Player Statistics"
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
-            var player: Person?
-            
-            // Figure out if player is from all players or just from group or team players
-            if contentManager.selectedValues.group == -1 {
-                
-                // If not in group and not in team then it's just from activity
-                if contentManager.selectedValues.team == -1 {
-                    player = activity.people[contentManager.selectedValues.player]
-                    
-                    // If not in group but in team, then it's from activity-team
-                } else {
-                    let team: Team = activity.teams[contentManager.selectedValues.team]
-                    player = team.people[contentManager.selectedValues.player]
-                }
-            } else {
-                
-                // If in group but not in team, then it's from activity-group
-                if contentManager.selectedValues.team == -1 {
-                    let group: Group = activity.groups[contentManager.selectedValues.group]
-                    player = group.people[contentManager.selectedValues.player]
-                    
-                    // If in group and in team, then it's from activity-group-team
-                } else {
-                    let group: Group = activity.groups[contentManager.selectedValues.group]
-                    let team: Team = group.teams[contentManager.selectedValues.team]
-                    player = team.people[contentManager.selectedValues.player]
-                }
-            }
+            let activity: Activity = getSelectedActivity()
+            var player: Person = getSelectedPlayer()
             
             // Display all of the players past values
             contentManager.tableValues = [("Overall Total","")]
-            for (_,pastPeriod) in player!.pastPeriods {
+            for (_,pastPeriod) in player.pastPeriods {
                 contentManager.tableValues.append((title: pastPeriod.description, value: ""))
             }
             
@@ -948,47 +910,18 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
         case 19: // View Player Statistics Screen
             contentManager.currentTitle = "View Player Statistics"
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
-            var player: Person?
-            
-            // Figure out if player is from all players or just from group or team players
-            if contentManager.selectedValues.group == -1 {
-                
-                // If not in group and not in team then it's just from activity
-                if contentManager.selectedValues.team == -1 {
-                    player = activity.people[contentManager.selectedValues.player]
-                    
-                    // If not in group but in team, then it's from activity-team
-                } else {
-                    let team: Team = activity.teams[contentManager.selectedValues.team]
-                    player = team.people[contentManager.selectedValues.player]
-                }
-            } else {
-                
-                // If in group but not in team, then it's from activity-group
-                if contentManager.selectedValues.team == -1 {
-                    let group: Group = activity.groups[contentManager.selectedValues.group]
-                    player = group.people[contentManager.selectedValues.player]
-                    
-                    // If in group and in team, then it's from activity-group-team
-                } else {
-                    let group: Group = activity.groups[contentManager.selectedValues.group]
-                    let team: Team = group.teams[contentManager.selectedValues.team]
-                    player = team.people[contentManager.selectedValues.player]
-                }
-            }
-            
-            
-            // TODO: HEY ADD AND TEST THE STUFF HERE
+            let activity: Activity = getSelectedActivity()
+            var player: Person = getSelectedPlayer()
             
             var useStatistics: StatisticHolder?
+            
             // If they selected the first value then they want to view current overall
             if contentManager.selectedDropdownIndex == 0 {
-                useStatistics = player!.currentStatistics
+                useStatistics = player.currentStatistics
                 
                 // If they selected any other value then they're viewing past statistics
             } else {
-                useStatistics = player!.pastPeriods[contentManager.selectedDropdownIndex - 1]
+                useStatistics = player.pastPeriods[contentManager.selectedDropdownIndex - 1]
             }
             
             contentManager.currentTitle = "View Statistics"
@@ -1007,7 +940,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentTitle = "View Activity Details"
             saveGameData()
             // Get the activity
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             
             // Display the name
             contentManager.currentDisplay = "Activity: \(activity.name)"
@@ -1030,43 +963,16 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 22: // View Player
             contentManager.currentTitle = "View Player"
             // Get activity and player
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
-            var player: Person?
+            let activity: Activity = getSelectedActivity()
+            var player: Person = getSelectedPlayer()
             
             // Set the value of the selected player
             if sender.titleLabel!.text == "View Player" {
                 contentManager.selectedValues.player = contentManager.savedDropdownInformation
             }
             
-            // Figure out if player is from all players or just from group or team players
-            if contentManager.selectedValues.group == -1 {
-                
-                // If not in group and not in team then it's just from activity
-                if contentManager.selectedValues.team == -1 {
-                    player = activity.people[contentManager.selectedValues.player]
-                    
-                    // If not in group but in team, then it's from activity-team
-                } else {
-                    let team: Team = activity.teams[contentManager.selectedValues.team]
-                    player = team.people[contentManager.selectedValues.player]
-                }
-            } else {
-                
-                // If in group but not in team, then it's from activity-group
-                if contentManager.selectedValues.team == -1 {
-                    let group: Group = activity.groups[contentManager.selectedValues.group]
-                    player = group.people[contentManager.selectedValues.player]
-                    
-                    // If in group and in team, then it's from activity-group-team
-                } else {
-                    let group: Group = activity.groups[contentManager.selectedValues.group]
-                    let team: Team = group.teams[contentManager.selectedValues.team]
-                    player = team.people[contentManager.selectedValues.player]
-                }
-            }
-            
             // Unsure exactly what to display here for now, so it called on the display function
-            contentManager.currentDisplay = player!.display()
+            contentManager.currentDisplay = player.display()
             
             // Create a button to exit the menu
             contentManager.currentOptions = [(18, "View Player Statistics", 1), (45, "Input Statistics For Player",1), (7,"Exit Menu",1)]
@@ -1078,7 +984,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentOptions = [(24,"Change Base Values",1), (26,"Add New Statistic",1), (30,"Add Calculation",1), (21,"Exit Menu",1)]
         case 24: // Change Base Values
             contentManager.currentTitle = "Change Base Values"
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             
             contentManager.currentDisplay = "Edit the base values using the below text field"
             
@@ -1097,7 +1003,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             var changeList: [String] = []
             
             // Get activity
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             
             // Run through the statistics
             var tableIndex: Int = 0
@@ -1164,7 +1070,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentOptions = [(29,"Yes",1), (21,"No",1)]
         case 29: // Input Statistics
             // Get the activity
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             
             // Run through each activity
             for (title,value) in contentManager.tableValues {
@@ -1196,7 +1102,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             clearTextFieldData()
             
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             
             // Display all of the statistics to help the player make their rule
             contentManager.tableValues = []
@@ -1307,7 +1213,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 // If the name isn't blank, ensure that the name isn't already being used
             } else {
                 var dupeName: Bool = false
-                for statistic in user.activities[contentManager.selectedValues.activity].overallStatistics {
+                for statistic in getSelectedActivity().overallStatistics {
                     if statistic.name == contentManager.savedTextfieldInformation[1] {
                         dupeName = true
                     }
@@ -1342,7 +1248,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             let newStatistic: Statistic = Statistic(name: contentManager.savedTextfieldInformation[1], value: 0, rule: [newCalculation])
             
             // Add the statistic to the activity
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             activity.addStatistic(newStatistic)
             
             contentManager.currentTitle = "Created Calculation"
@@ -1369,7 +1275,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 // If they did, ensure that the name isn't already being used
             } else {
                 var dupeName: Bool = false
-                for group in user.activities[contentManager.selectedValues.activity].groups {
+                for group in getSelectedActivity().groups {
                     if group.name == contentManager.savedTextfieldInformation[0] {
                         dupeName = true
                     }
@@ -1385,7 +1291,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     
                     // If the name isn't already used, then let them input the statistics for that activity
                 } else {
-                    if user.activities[contentManager.selectedValues.activity].people.isEmpty {
+                    if getSelectedActivity().people.isEmpty {
                         contentManager.currentTitle = "Create Group"
                         contentManager.currentDisplay = "Since you have no players for this activity, you can immediately finalise group creation. Are you certain you would like to create this group?"
                         contentManager.currentOptions = [(39,"Create Group",1), (7,"Exit Menu",1)]
@@ -1409,20 +1315,20 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 let newGroup: Group = Group(name: contentManager.savedTextfieldInformation[0], people: [], teams: [], uniqueID: user.groupCount)
                 user.groupCount += 1
                 
-                user.activities[contentManager.selectedValues.activity].groups.append(newGroup)
+                getSelectedActivity().groups.append(newGroup)
                 saveGameData()
             } else {
                 
                 var indexCount: Int = 0
                 // Run through the players in the activity
-                for player in user.activities[contentManager.selectedValues.activity].people {
+                for player in getSelectedActivity().people {
                     
                     // Find the ones not in a group
                     if player.details.group.id == -1 && player.details.group.name == "" && player.details.group.index == -1 {
                         
                         // If they match the selected dropdown segment then they're the one that got selected
                         if indexCount == contentManager.selectedDropdownIndex {
-                            user.activities[contentManager.selectedValues.activity].groups.last?.people.append(player)
+                            getSelectedActivity().groups.last?.people.append(player)
                             // Otherwise we must try again and see if the next one matches
                         } else {
                             indexCount += 1
@@ -1439,7 +1345,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // Make the table start out with the players that aren't in groups already
                 contentManager.tableValues = []
-                for player in user.activities[contentManager.selectedValues.activity].people {
+                for player in getSelectedActivity().people {
                     if player.details.group.id == -1 && player.details.group.name == "" && player.details.group.index == -1 {
                         contentManager.tableValues.append((title: player.details.name, value: ""))
                     }
@@ -1480,9 +1386,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 // Handle which set of teams to look at
                 var useTeams: [Team] = []
                 if contentManager.selectedValues.group == -1 {
-                    useTeams = user.activities[contentManager.selectedValues.activity].teams
+                    useTeams = getSelectedActivity().teams
                 } else {
-                    useTeams = user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].teams
+                    useTeams = getSelectedGroup().teams
                 }
                 
                 // Find if the name is a duplicate
@@ -1503,7 +1409,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     // If the name isn't already used, then let them input the statistics for that activity
                 } else {
                     if contentManager.selectedValues.group == -1 {
-                        if user.activities[contentManager.selectedValues.activity].people.isEmpty {
+                        if getSelectedActivity().people.isEmpty {
                             contentManager.currentTitle = "Create Team"
                             contentManager.currentDisplay = "Since you have no players for this activity, you can immediately finalise team creation. Are you certain you would like to create this team?"
                             contentManager.currentOptions = [(43,"Create Team",1), (7,"Exit Menu",1)]
@@ -1513,7 +1419,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                             contentManager.currentOptions = [(43,"Add Players",1), (7,"Exit Menu",1)]
                         }
                     } else {
-                        if user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].people.isEmpty {
+                        if getSelectedGroup().people.isEmpty {
                             contentManager.currentTitle = "Create Team"
                             contentManager.currentDisplay = "Since you have no players for this group, you can immediately finalise team creation. Are you certain you would like to create this team?"
                             contentManager.currentOptions = [(43,"Create Team",1), (9,"Exit Menu",1)]
@@ -1542,21 +1448,14 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 user.teamCount += 1
                 
                 // Add the team to the activity, and maybe to the group
-                user.activities[contentManager.selectedValues.activity].teams.append(newTeam)
+                getSelectedActivity().teams.append(newTeam)
                 if contentManager.selectedValues.group != -1 {
-                    user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].teams.append(newTeam)
+                    getSelectedGroup().teams.append(newTeam)
                 }
                 
                 saveGameData()
             } else {
-                var usePlayers: [Person] = []
-                
-                // If the group has players then let them add players, otherwise use the activity players
-                if contentManager.selectedValues.group == -1 {
-                    usePlayers = user.activities[contentManager.selectedValues.activity].people
-                } else {
-                    usePlayers = user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].people
-                }
+                var usePlayers: [Person] = getSelectedPlayers()
                 
                 var indexCount: Int = 0
                 // Run through the players in the activity
@@ -1569,9 +1468,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                         if indexCount == contentManager.selectedDropdownIndex {
                             
                             if contentManager.selectedValues.group == -1 {
-                                user.activities[contentManager.selectedValues.activity].teams.last?.people.append(player)
+                                getSelectedActivity().teams.last?.people.append(player)
                             } else {
-                                user.activities[contentManager.selectedValues.activity].groups[contentManager.selectedValues.group].teams.last?.people.append(player)
+                                getSelectedGroup().teams.last?.people.append(player)
                             }
                             // Otherwise we must try again and see if the next one matches
                         } else {
@@ -1592,7 +1491,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // Make the table start out with the players that aren't in teams already
                 contentManager.tableValues = []
-                for player in user.activities[contentManager.selectedValues.activity].people {
+                for player in getSelectedActivity().people {
                     if player.details.team.id == -1 && player.details.team.name == "" && player.details.team.index == -1 {
                         contentManager.tableValues.append((title: player.details.name, value: ""))
                     }
@@ -1615,48 +1514,28 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentOptions = [(46,"Yes",1), (22,"No",1)]
             
             // Declare some variables
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
-            var group: Group?
-            var team: Team?
-            var player: Person?
-            
-            // Set up the relevant variables
-            if contentManager.selectedValues.team != -1 {
-                if contentManager.selectedValues.group != -1 {
-                    group = activity.groups[contentManager.selectedValues.group]
-                    team = group!.teams[contentManager.selectedValues.team]
-                } else {
-                    team = activity.teams[contentManager.selectedValues.team]
-                }
-            }
+            var team: Team = getSelectedTeam()
+            var player: Person = getSelectedPlayer()
             
             // Figure out whether it's team statistics or player statistics
             switch sender.titleLabel?.text {
+                
+                // If it's team then add each of the players
             case "Input Statistics For Team":
                 contentManager.savedIntegers = [0]
                 contentManager.currentOptions[1].identifier = 11
                 
                 // Add each of the players to the array of people to look at
-                for player in team!.people {
+                for player in team.people {
                     contentManager.savedIntegers.append(player.details.uniqueID)
                 }
                 
                 contentManager.currentDisplay = "Are you certain you'd like to input new statistic values for this team?"
+                
+                // If it's single player then add the one player
             case "Input Statistics For Player":
-                
-                // Figure out which player is being looked at
-                if team == nil {
-                    if group == nil {
-                        player = activity.people[contentManager.selectedValues.player]
-                    } else {
-                        player = group!.people[contentManager.selectedValues.player]
-                    }
-                } else {
-                    player = team!.people[contentManager.selectedValues.player]
-                }
-                
                 // Add them to the array of people being looked at
-                contentManager.savedIntegers = [0, player!.details.uniqueID]
+                contentManager.savedIntegers = [0, player.details.uniqueID]
                 
                 contentManager.currentDisplay = "Are you certain you'd like to input new statistic values for this player?"
                 
@@ -1676,10 +1555,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             if contentManager.savedIntegers[0] != contentManager.savedIntegers.count {
                 
                 // Get the player that you're meant to be modifying now
-                let activity: Activity = user.activities[contentManager.selectedValues.activity]
-                let playerID: Int = contentManager.savedIntegers[contentManager.savedIntegers[0]]
-                let playerIndex: Int = activity.searchPlayersFor(ID: playerID)
-                let player: Person = activity.people[playerIndex]
+                let player: Person = getPlayerFromSavedNumber()
                 
                 contentManager.currentTitle = "Add Statistics"
                 contentManager.currentDisplay = "You are now adding statistics for player \(contentManager.savedIntegers[0]), \(player.details.name). If they were absent from this event then please press \"No Statistics Available\""
@@ -1691,10 +1567,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
         case 48: // Add Statistics Screen
             // Get the player that you're meant to be modifying now
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
-            let playerID: Int = contentManager.savedIntegers[contentManager.savedIntegers[0]]
-            let playerIndex: Int = activity.searchPlayersFor(ID: playerID)
-            let player: Person = activity.people[playerIndex]
+            let activity: Activity = getSelectedActivity()
+            let player: Person = getPlayerFromSavedNumber()
             
             // Display what the player should input
             contentManager.currentTitle = "Input Statistics"
@@ -1711,10 +1585,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 }
             }
         case 49: // Run Added Statistics (Add the statistics to the player), display completion message
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
-            let playerID: Int = contentManager.savedIntegers[contentManager.savedIntegers[0]]
-            let playerIndex: Int = activity.searchPlayersFor(ID: playerID)
-            let player: Person = activity.people[playerIndex]
+            let activity: Activity = getSelectedActivity()
+            let player: Person = getPlayerFromSavedNumber()
             
             // Create the statistics that are being added
             var newStatistics: StatisticHolder = StatisticHolder(description: contentManager.savedTextfieldInformation[0], statistics: activity.overallStatistics)
@@ -1744,10 +1616,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Let the player move onto the next person
             contentManager.currentOptions = [(47,"Continue",1)]
         case 50: // No Statistics For This Period
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
-            let playerID: Int = contentManager.savedIntegers[contentManager.savedIntegers[0]]
-            let playerIndex: Int = activity.searchPlayersFor(ID: playerID)
-            let player: Person = activity.people[playerIndex]
+            let player: Person = getPlayerFromSavedNumber()
             
             // Make the statistic input blank
             let newStatistics: StatisticHolder = StatisticHolder(description: contentManager.savedTextfieldInformation[0], statistics: [])
@@ -1762,7 +1631,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Let the player move onto the next person
             contentManager.currentOptions = [(47,"Continue",1)]
         case 51: // Finished Statistic Input
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             
             contentManager.savedIntegers.removeFirst()
             
@@ -1785,20 +1654,19 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 52:
             contentManager.currentTitle = "Search Menu"
             contentManager.currentDisplay = "Would you like to create a new search?"
-            contentManager.currentOptions = [(53,"Create New Search",1), (12,"Exit Menu",1)]
+            contentManager.currentOptions = [(53,"Create New Search",1), (7,"Exit Menu",1)]
             
             // Check if the user already has search rule and adjust display accordingly
-            if !user.activities[contentManager.selectedValues.activity].searchRules.isEmpty {
+            if !getSelectedActivity().searchRules.isEmpty {
                 contentManager.currentDisplay.removeLast()
                 contentManager.currentDisplay = "Would you like to view your current searches, or create a new search?"
-                contentManager.currentOptions.insert((60,"View Search Rules",0), at: 0)
+                contentManager.currentOptions = [(60,"View Search Rules",0)] + contentManager.currentOptions
             }
-            // Let the player exit to the menu
             
         case 53:
             contentManager.currentTitle = "How To Search"
             contentManager.currentDisplay = "Searches can use multiple requirements at once, you simply write multiple general searches and the acceptable players will be repeatedly reduced.\n\nYour requirements can be either a Sort or a Search, sort will order the players, and search will filter the players.\n\nIf you wish to learn how to write out your search or sort, please press \"Tutorial\", otherwise if you're ready to write your rule, press \"Create Search\""
-            contentManager.currentOptions = [(54,"Tutorial",1),(57,"Create Search",1)]
+            contentManager.currentOptions = [(54,"Tutorial",1),(57,"Create Search",1),(7,"Exit Menu",1)]
             
         case 54:
             contentManager.currentTitle = "Tutorial - Sort/Search"
@@ -1822,33 +1690,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentOptions = [(0,"Current Rules",9),(0,"New Rule",2),(57,"Input Rule",1), (57,"Remove Rule",1), (58,"Finalise Search",1),(57,"Exit Menu",1)]
             
             // Get the activity
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             
             // Declare the players that are currently available in the selection
-            var usePlayers: [Person] = []
-            
-            // Check which players to use
-            
-            // If the player hasn't selected a group or a team, then it's activity
-            if contentManager.selectedValues.group == -1 && contentManager.selectedValues.team == -1 {
-                usePlayers = activity.people
-                
-            // If they have selected a group, but not a team, then it's group
-            } else if contentManager.selectedValues.group != -1 && contentManager.selectedValues.team == -1 {
-                let group = activity.groups[contentManager.selectedValues.group]
-                usePlayers = group.people
-            
-            // If they have selected a team, but not a group, then it's activity team
-            } else if contentManager.selectedValues.group == -1 && contentManager.selectedValues.team != -1 {
-                let team = activity.teams[contentManager.selectedValues.team]
-                usePlayers = team.people
-            
-            // If they have selected a group, and a team, then it's group team
-            } else if contentManager.selectedValues.group != -1 && contentManager.selectedValues.team != -1 {
-                let group = activity.groups[contentManager.selectedValues.group]
-                let team = group.teams[contentManager.selectedValues.team]
-                usePlayers = team.people
-            }
+            var usePlayers: [Person] = getSelectedPlayers()
             
             
             // If they're removing a rule
@@ -1930,7 +1775,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             if !usePlayers.isEmpty && contentManager.savedTextfieldInformation.count != 0 {
                 
                 // Handle their other inputs
-                var searchSplit: [String] = contentManager.savedTextfieldInformation
+                let searchSplit: [String] = contentManager.savedTextfieldInformation
                 
                 // If they have actual inputs for rules then run them
                 if searchSplit.count != 0 {
@@ -1954,33 +1799,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
         case 58: // View Players From Search
             // Get the activity
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             
             // Declare the players that are currently available in the selection
-            var usePlayers: [Person] = []
-            
-            // Check which players to use
-            
-            // If the player hasn't selected a group or a team, then it's activity
-            if contentManager.selectedValues.group == -1 && contentManager.selectedValues.team == -1 {
-                usePlayers = activity.people
-                
-            // If they have selected a group, but not a team, then it's group
-            } else if contentManager.selectedValues.group != -1 && contentManager.selectedValues.team == -1 {
-                let group = activity.groups[contentManager.selectedValues.group]
-                usePlayers = group.people
-            
-            // If they have selected a team, but not a group, then it's activity team
-            } else if contentManager.selectedValues.group == -1 && contentManager.selectedValues.team != -1 {
-                let team = activity.teams[contentManager.selectedValues.team]
-                usePlayers = team.people
-            
-            // If they have selected a group, and a team, then it's group team
-            } else if contentManager.selectedValues.group != -1 && contentManager.selectedValues.team != -1 {
-                let group = activity.groups[contentManager.selectedValues.group]
-                let team = group.teams[contentManager.selectedValues.team]
-                usePlayers = team.people
-            }
+            var usePlayers: [Person] = getSelectedPlayers()
             
             var ruleList: [String] = contentManager.savedTextfieldInformation
             ruleList.removeLast()
@@ -1989,13 +1811,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             runSearches(usePlayers: &usePlayers, rules: ruleList, activity: activity)
             
             // Add the new rule to the activity
-            user.activities[contentManager.selectedValues.activity].searchRules.append(SearchRule(name: "", rules: ruleList, players: usePlayers))
+            getSelectedActivity().searchRules.append(SearchRule(name: "", rules: ruleList, players: usePlayers))
             
             contentManager.currentTitle = "Assign Search Name"
             contentManager.currentDisplay = "Please input a name for this search into the below text field"
             contentManager.currentOptions = [(0,"Search Name",2),(59,"Input Name",1)]
         case 59:
-            let activity = user.activities[contentManager.selectedValues.activity]
+            let activity = getSelectedActivity()
             activity.searchRules[activity.searchRules.count - 1].name = contentManager.savedTextfieldInformation.last!
             saveGameData()
             
@@ -2007,7 +1829,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentDisplay = "Please select a search rule from the below table, and press the \"View Players For Rule\" button to view the selection"
             contentManager.currentOptions = [(0,"Search Rule",7),(12,"View Players For Rule",1),(7,"Exit Menu",1)]
             
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
+            let activity: Activity = getSelectedActivity()
             
             // Display the search rules on a table view
             contentManager.tableValues = []
@@ -2032,8 +1854,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentDisplay = "The group has successfully been deleted"
             
             // Get the group and activities
-            let activity: Activity = user.activities[contentManager.selectedValues.activity]
-            let group: Group = activity.groups[contentManager.selectedValues.group]
+            let activity: Activity = getSelectedActivity()
+            let group: Group = getSelectedGroup()
             
             // Figure out what they wanted to do with the associated teams and players
             switch sender.titleLabel!.text {
@@ -2062,13 +1884,46 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             default: break
             }
             
+            activity.removeGroup(group)
             
             
+            contentManager.currentOptions = [(8, "Exit Menu", 1)]
+        case 64:
+            // Save the team index that they want to delete
+            contentManager.selectedValues.team = contentManager.savedDropdownInformation
             
-            contentManager.currentOptions = []
-        case 64: break
-        case 65: break
-        case 66: break
+            // Confirm that they actually want to delete the group
+            contentManager.currentTitle = "Team Deletion"
+            contentManager.currentDisplay = "Are you sure you want to delete the team \(contentManager.tableValues[contentManager.savedDropdownInformation].title)"
+            contentManager.currentOptions = [(65, "Yes", 1)]
+        case 65:
+            contentManager.currentTitle = "Team Deletion"
+            contentManager.currentDisplay = "What would you like to do with the players associated with that group?"
+            contentManager.currentOptions = [(66, "Don't Delete Players", 1),(66, "Delete Players", 1), (64, "Exit Menu", 1)]
+        case 66:
+            contentManager.currentTitle = "Deleted Team"
+            contentManager.currentDisplay = "The team has successfully been deleted"
+            
+            // Get the group and activities
+            let activity: Activity = getSelectedActivity()
+            let team: Team = getSelectedTeam()
+            
+            // Figure out what they wanted to do with the associated players
+            //      This could be an if statement, but if I want to add cases later this is a good setup
+            switch sender.titleLabel!.text {
+            case "Don't Delete Players": break
+            
+            // If they want the players deleted then remove the players from the activity
+            case "Delete Players":
+                for player in team.people {
+                    activity.removePerson(player)
+                }
+            default: break
+            }
+            
+            activity.removeTeam(team)
+            
+            contentManager.currentOptions = [(10, "Exit Menu", 1)]
         case 67: break
         case 68: break
         case 69: break
@@ -2727,7 +2582,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     }
                 }
                 
-                let activity: Activity = user.activities[contentManager.selectedValues.activity]
+                let activity: Activity = getSelectedActivity()
                 
                 // Check it against the existing statistics
                 for statistic in activity.overallStatistics {

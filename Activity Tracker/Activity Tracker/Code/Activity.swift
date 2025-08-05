@@ -80,6 +80,29 @@ class Activity: Codable {
         return -1
     }
     
+    // Function to get a groups postion within the activities teams
+    func searchGroupsFor(ID: Int) -> Int {
+        // Run through all the groups
+        for (index,group) in groups.enumerated() {
+            
+            // If the ID matches then return their index
+            if group.uniqueID == ID {
+                return index
+            }
+        }
+        return -1
+    }
+    
+    // Function to completely remove a team from an activity
+    func removeGroup(_ group: Group) {
+        
+        // Remove them from the activity
+        let groupCheck: Int = searchGroupsFor(ID: group.uniqueID)
+        if groupCheck != -1 {
+            groups.remove(at: groupCheck)
+        }
+    }
+    
     // Function to completely remove a team from an activity
     func removeTeam(_ team: Team) {
         // Remove them from the groups
@@ -126,7 +149,7 @@ class Activity: Codable {
     // Function to calculate the current total statistics of an activity
     func calculateCurrentStatistics() {
         // First reset the values to 0 so that all base values are removed
-        for (index,statistic) in self.combined.statistics.enumerated() {
+        for (index,_) in self.combined.statistics.enumerated() {
             self.combined.statistics[index].value = 0
         }
         
@@ -217,17 +240,17 @@ struct SearchRule: Codable {
 
 // Used to hold groups of people within an activity
 // Can hold further teams within the group
-class Group: Codable {
-    var name: String // Group name
-    var people: [Person] // The people in the group
+class Group: PlayerHolder {
     var teams: [Team] // The teams within the group
-    var uniqueID: Int // The groups unique identifier incase group/team deletion
     
     init(name: String, people: [Person], teams: [Team], uniqueID: Int) {
-        self.name = name
-        self.people = people
         self.teams = teams
-        self.uniqueID = uniqueID
+        
+        super.init(name: name, people: people, uniqueID: uniqueID)
+    }
+    
+    required init(from decoder: any Decoder) throws {
+        fatalError("init(from:) has not been implemented")
     }
     
     // Function to get a players postion within the groups's players
@@ -259,15 +282,14 @@ class Group: Codable {
 
 // Used to hold teams of people within an activity
 // Cannot hold further groups within the team
-class Team: Codable {
-    var name: String // Team name
-    var people: [Person] // The people in the team
-    var uniqueID: Int // The teams unique identifier incase group/team deletion
+class Team: PlayerHolder {
     
-    init(name: String, people: [Person], uniqueID: Int) {
-        self.name = name
-        self.people = people
-        self.uniqueID = uniqueID
+    override init(name: String, people: [Person], uniqueID: Int) {
+        super.init(name: name, people: people, uniqueID: uniqueID)
+    }
+    
+    required init(from decoder: any Decoder) throws {
+        fatalError("init(from:) has not been implemented")
     }
     
     // Function to get a players postion within the teams's players
@@ -311,7 +333,7 @@ class Person: Codable {
     // Function to calculate the combined total of a persons past periods
     func calculateCurrentStatistics() {
         // First reset the values to 0 so that all base values are removed
-        for (index,statistic) in self.currentStatistics.statistics.enumerated() {
+        for (index,_) in self.currentStatistics.statistics.enumerated() {
             self.currentStatistics.statistics[index].value = 0
             
         }
@@ -387,7 +409,19 @@ class Person: Codable {
     }
 }
 
-// 
+// Used to uphold inheritance/generalisation or whichever one it is
+class PlayerHolder: Codable {
+    var name: String // Name of the group/team
+    var people: [Person] // The people in the group/team
+    var uniqueID: Int // The unqiue identifier of the group/team
+    
+    init(name: String, people: [Person], uniqueID: Int) {
+        self.name = name
+        self.people = people
+        self.uniqueID = uniqueID
+    }
+}
+
 struct PersonDetails: Codable {
     var name: String
     var uniqueID: Int
@@ -395,23 +429,25 @@ struct PersonDetails: Codable {
     var team: FixedStorage
     
     // Function to set the players group and team details by inputting either a group or team
-    mutating func getFrom(_ input: Any) {
+    
+    // Mr Robertson, this is some good use of inheriting and generalising cause I'm using the array of PlayerHolders to mean both Groups and Teams!!!!!!!!!!
+    mutating func getFrom(_ input: [PlayerHolder]) {
         
         // If the input is an array then run this code for each of the values
-        if input is [Any] {
-            for value in (input as! [Any]) {
-                self.getFrom(value)
+        if input.count != 1 {
+            for value in input {
+                self.getFrom([value])
             }
             
         // If the input is a group, set the players group id and index
-        } else if input is Group {
-            let addGroup = input as! Group
+        } else if input[0] is Group {
+            let addGroup = input[0] as! Group
             group.id = addGroup.uniqueID
             group.index = contentManager.selectedValues.group
         
         // If the input is a team, set the players team id and index
-        } else if input is Team {
-            let addTeam = input as! Team
+        } else if input[0] is Team {
+            let addTeam = input[0] as! Team
             team.id = addTeam.uniqueID
             team.index = contentManager.selectedValues.team
         }
@@ -707,7 +743,7 @@ func runSearches(usePlayers: inout [Person], rules: [String], activity: Activity
     // Run through each of the searches
     for rule in searchRules {
         // Get the rule into a workable form
-        var ruleElements: [String] = rule.components(separatedBy: " ")
+        let ruleElements: [String] = rule.components(separatedBy: " ")
         
         // Get the indexes of the players who failed the check
         var indexArray: [Int] = []
@@ -806,7 +842,7 @@ func runSearches(usePlayers: inout [Person], rules: [String], activity: Activity
     // Run through each of the sorting rules
     for rule in sortRules {
         // Get the rule elements
-        var ruleElements: [String] = rule.components(separatedBy: " ")
+        let ruleElements: [String] = rule.components(separatedBy: " ")
         
         // Get the statistic to sort on
         let statisticIndex: Int = activity.overallStatistics.searchNamesFor(input: ruleElements[1])
@@ -820,4 +856,93 @@ func runSearches(usePlayers: inout [Person], rules: [String], activity: Activity
             usePlayers.sort {$0.currentStatistics.statistics[statisticIndex].value < $1.currentStatistics.statistics[statisticIndex].value}
         }
     }
+}
+
+// Function to make getting an activity easier
+func getSelectedActivity() -> Activity {
+    // Just get and return the activity
+    let activity: Activity = user.activities[contentManager.selectedValues.activity]
+    return activity
+}
+
+// Function to make getting a group easier
+func getSelectedGroup() -> Group {
+    
+    // Get the group from the activity
+    let activity: Activity = getSelectedActivity()
+    let group: Group = activity.groups[contentManager.selectedValues.group]
+    return group
+}
+
+// Function to make getting a team easier
+func getSelectedTeam() -> Team {
+    // Get the activity
+    let activity: Activity = getSelectedActivity()
+    
+    // If we have group selected then get team from group
+    if contentManager.selectedValues.group != -1 {
+        let group: Group = getSelectedGroup()
+        let team: Team = group.teams[contentManager.selectedValues.team]
+        return team
+    
+    // If we have no group selected then get team from activity
+    } else {
+        let team: Team = activity.teams[contentManager.selectedValues.team]
+        return team
+    }
+}
+
+// Function to make getting a player easier
+func getSelectedPlayer() -> Person {
+    // Get the activity
+    let activity: Activity = getSelectedActivity()
+    
+    // If no group or team is selected then get from activity
+    if contentManager.selectedValues.team == -1 && contentManager.selectedValues.group == -1 {
+        let player: Person = activity.people[contentManager.selectedValues.player]
+        return player
+    
+    // If there is a group selected and no team selected
+    } else if contentManager.selectedValues.team == -1 {
+        let group: Group = getSelectedGroup()
+        let player: Person = group.people[contentManager.selectedValues.player]
+        return player
+    
+    // And finally if none of those worked then it's A-G-T-P or A-T-P, which means we're relying on a team to get the player, so all complex logic is already handled in the getSelectedTeam() function
+    } else {
+        let team: Team = getSelectedTeam()
+        let player: Person = team.people[contentManager.selectedValues.player]
+        return player
+    }
+}
+
+func getSelectedPlayers() -> [Person] {
+    // Get the activity
+    let activity: Activity = getSelectedActivity()
+    
+    // If no group or team is selected then get from activity
+    if contentManager.selectedValues.team == -1 && contentManager.selectedValues.group == -1 {
+        let players: [Person] = activity.people
+        return players
+    
+    // If there is a group selected and no team selected
+    } else if contentManager.selectedValues.team == -1 {
+        let group: Group = getSelectedGroup()
+        let players: [Person] = group.people
+        return players
+    
+    // And finally if none of those worked then it's A-G-T-P or A-T-P, which means we're relying on a team to get the player, so all complex logic is already handled in the getSelectedTeam() function
+    } else {
+        let team: Team = getSelectedTeam()
+        let players: [Person] = team.people
+        return players
+    }
+}
+
+// Function to get a player from a saved array of ID's
+func getPlayerFromSavedNumber() -> Person {
+    let activity: Activity = getSelectedActivity()
+    let playerID: Int = contentManager.savedIntegers[contentManager.savedIntegers[0]]
+    let playerIndex: Int = activity.searchPlayersFor(ID: playerID)
+    return activity.people[playerIndex]
 }

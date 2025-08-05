@@ -1,7 +1,9 @@
 import Foundation
 
+// Declare the directory url at the start of the code so it can be used in the below functons
 let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
 
+// Function to load the data from save file
 func loadGameData() {
         do {
             // Declare the decoding method
@@ -20,13 +22,14 @@ func loadGameData() {
         }
 }
 
+// Function to save the data to the save file
 func saveGameData() {
         // Declare the encoder
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         
         // Declare a basic variable for jsonData
-        var jsonData = try! encoder.encode(user)
+        let jsonData = try! encoder.encode(user)
         do {
             // Turn that data into a json string
             let jsonString: String = String(data: jsonData, encoding: .utf8)!
@@ -41,6 +44,7 @@ func saveGameData() {
     }
 }
 
+// Function to add a new password onto the existing passwords
 func addPassword() {
     let str: String = getOldSaves() + user.details.password + "-" + user.details.username + ","
     let filename = URL(fileURLWithPath: "saveStates.csv", relativeTo: directoryURL)
@@ -56,6 +60,7 @@ func addPassword() {
     }
 }
 
+// Function to get the current saved account details of all accounts
 func getOldSaves() -> String {
     let filename = URL(fileURLWithPath: "saveStates.csv", relativeTo: directoryURL)
     do {
@@ -69,13 +74,22 @@ func getOldSaves() -> String {
     }
 }
 
+// Function to check if a password and username input is correct
 func acceptableAccount(input: [String]) -> Bool {
+    // Get the current account details
     var values = getOldSaves().components(separatedBy: ",")
     let userIndex = input.count - 1
+    
+    // If there are old files
     if getOldSaves() != "" {
+        
+        // Remove the incorrect input from start of the array
         values.removeFirst()
+        
+        // Run through each input
         for user in values {
             if user != "" {
+                // If the username is the same then return an error
                 let values: [String] = user.components(separatedBy: "-")
                 if values[1] == input[userIndex] {
                     return false
@@ -86,6 +100,7 @@ func acceptableAccount(input: [String]) -> Bool {
     return true
 }
 
+// Function to check if we have save data yet
 func existingFiles() -> Bool {
     let filename = URL(fileURLWithPath: "saveStates.csv", relativeTo: directoryURL)
     do {
@@ -99,6 +114,7 @@ func existingFiles() -> Bool {
     return false
 }
 
+// Function to get the passwords and usernames that already exist
 func getPasswords() -> [(String,String)] {
     var returnArray: [(String,String)] = []
     let baseString: String = getOldSaves()
@@ -114,6 +130,7 @@ func getPasswords() -> [(String,String)] {
     return returnArray
 }
 
+// Function to give a list of the current account usernames
 func presentCurrentSaves() -> [String] {
     var returnArray: [String] = []
     let savedStates: [User] = bulkGetStates()
@@ -123,6 +140,7 @@ func presentCurrentSaves() -> [String] {
     return returnArray
 }
 
+// Function to get get the past saved usernames and passwords from the save file
 func bulkGetStates() -> [User] {
     var userStates: [User] = []
     let currentUsers: [(String,String)] = getPasswords()
@@ -132,6 +150,7 @@ func bulkGetStates() -> [User] {
     return userStates
 }
 
+// Function to create a temporary user account from the 
 func loadCustomData(_ password: String, _ username: String) -> User {
     var returnUser: User = User(activities: [], details: UserDetails(username: "", password: ""), playerCount: 0, groupCount: 0, teamCount: 0)
     // Declare the decoding method
