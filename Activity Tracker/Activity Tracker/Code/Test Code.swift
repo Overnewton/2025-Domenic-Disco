@@ -1,4 +1,8 @@
+// The functions here are for help in testing for easy generation of players so that I can super easily test my new code
+
 import Foundation
+
+
 
 // Generated a more controlled test,
 // where you have a fixed number of statstics (5)

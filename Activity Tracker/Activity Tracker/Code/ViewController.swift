@@ -517,6 +517,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     contentManager.storedDropdowns.append(group.name)
                 }
             }
+            saveGameData()
         case 9: // View Group
             contentManager.currentTitle = "View Group"
             // Save data since some later cases send the user back here
@@ -546,59 +547,12 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
         case 10: // Select Team
             contentManager.currentTitle = "Select Team"
-            /*
-             Okay so the code below is kinda complex so I'm going to summarise it here and explain why it's complex:
-             
-             Teams are stored in both the Group and the Activity, so there are teams that are only in an activity, and teams that are in both group and activity
-             
-             So when displaying teams, we need to check which value is being accessed, aka is the user viewing teams for the whole activity or teams for a specific group.
-             
-             Basically it checks which one the user is trying to view, and displays those teams
-             */
-            
-            var noTeams: Bool = false
-            
-            // Declare activity here for ease of use
-            let activity: Activity = getSelectedActivity()
             
             // Declare the array of teams
-            var useTeams: [Team] = []
-            
-            // If the activity stores groups and teams
-            if activity.storageType == 1 {
-                
-                // And the user is viewing the teams for activity
-                if contentManager.selectedValues.group == -1 {
-                    
-                    // Then use activity teams
-                    if activity.teams.isEmpty {
-                        noTeams = true
-                    } else {
-                        useTeams = activity.teams
-                    }
-                    
-                    // Otherwise use group teams
-                } else {
-                    
-                    // Set group here for ease of use
-                    let group: Group = getSelectedGroup()
-                    if group.teams.isEmpty {
-                        noTeams = true
-                    } else {
-                        useTeams = group.teams
-                    }
-                }
-                // If the activity doesn't have groups, then just check regular activity teams
-            } else {
-                if activity.teams.isEmpty {
-                    noTeams = true
-                } else {
-                    useTeams = activity.teams
-                }
-            }
+            var useTeams: [Team] = getSelectedTeams()
             
             // If no teams exist then have the user make a team
-            if noTeams {
+            if useTeams.isEmpty {
                 contentManager.currentDisplay = "You currently don't have any teams, to create a new team press \"Create New Team\""
                 
                 // Create a button to create a new group, and a button to exit the page
@@ -619,13 +573,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     contentManager.storedDropdowns.append(team.name)
                 }
             }
-            
+            saveGameData()
         case 11: // View Team
             contentManager.currentTitle = "View Team"
             // Save data since some later cases send the user back here
             saveGameData()
             
-            // Reset the team and player values to avoid later issues
+            // Reset the search and player values to avoid later issues
             contentManager.selectedValues.player = -1
             contentManager.selectedValues.search = -1
             
@@ -650,46 +604,11 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.currentOptions += [(9,"Exit Menu",1)]
             }
         case 12: // Viewing Players
+            contentManager.selectedValues.player = -1
             contentManager.currentTitle = "View Players"
-            // This array is used to store the people that need to be displayed
-            var displayPeople: [Person] = []
             
-            // Figure out what to do based on what the button the user pressed
-            switch sender.titleLabel!.text {
-                // If this is to view all players then display all players for the activity
-            case "View All Players":
-                let activity: Activity = getSelectedActivity()
-                displayPeople = activity.people
-                
-                // If this is to view players for a group then display players for the selected group
-            case "View Players For Group":
-                let group: Group = getSelectedGroup()
-                displayPeople = group.people
-                
-                // If this is to view players for a team then display players for the selected team
-            case "View Players For Team":
-                // If the user is viewing the players for a team that isn't within a group, then get activity-team
-                if contentManager.selectedValues.group == -1 {
-                    let team: Team = getSelectedTeam()
-                    displayPeople = team.people
-                    
-                    // Otherwise if the user is viewing the players for a team that is within a group, then get activity-group-team
-                } else {
-                    let team: Team = getSelectedTeam()
-                    displayPeople = team.people
-                }
-            case "View Players For Rule":
-                contentManager.selectedValues.search = contentManager.savedDropdownInformation
-                
-                let activity: Activity = getSelectedActivity()
-                displayPeople = activity.searchRules[contentManager.selectedValues.search].players
-                
-                
-            case "View All Players In Group":
-                let group: Group = getSelectedGroup()
-                displayPeople = group.people
-            default: break
-            }
+            // This array is used to store the people that need to be displayed
+            let displayPeople: [Person] = getSelectedPlayers()
             
             // If no people are in the array then have the user add a new player
             if displayPeople.isEmpty {
@@ -728,6 +647,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     contentManager.storedDropdowns.append(player.details.name)
                 }
             }
+            
+            saveGameData()
         case 13: // Create Player -> Assign Name
             contentManager.currentTitle = "Create Player"
             contentManager.currentDisplay = "What would you like this player to be named?"
@@ -1839,7 +1760,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Confirm that they actually want to delete the group
             contentManager.currentTitle = "Group Deletion"
             contentManager.currentDisplay = "Are you sure you want to delete the group \(contentManager.tableValues[contentManager.savedDropdownInformation].title)"
-            contentManager.currentOptions = [(62, "Yes", 1)]
+            contentManager.currentOptions = [(62, "Yes", 1),(8,"No",1)]
         case 62: // Delete Group Information Confirmation
             contentManager.currentTitle = "Group Deletion"
             contentManager.currentDisplay = "What would you like to do with the players and teams associated with that group?"
@@ -1890,7 +1811,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             // Confirm that they actually want to delete the group
             contentManager.currentTitle = "Team Deletion"
             contentManager.currentDisplay = "Are you sure you want to delete the team \(contentManager.tableValues[contentManager.savedDropdownInformation].title)"
-            contentManager.currentOptions = [(65, "Yes", 1)]
+            contentManager.currentOptions = [(65, "Yes", 1), (10,"No",1)]
         case 65:
             contentManager.currentTitle = "Team Deletion"
             contentManager.currentDisplay = "What would you like to do with the players associated with that group?"
@@ -1919,9 +1840,37 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             activity.removeTeam(team)
             
             contentManager.currentOptions = [(10, "Exit Menu", 1)]
-        case 67: break
-        case 68: break
+        case 67:
+            // Save the player index that they want to delete
+            contentManager.selectedValues.player = contentManager.savedDropdownInformation
+            
+            // Confirm that they actually want to delete the player
+            contentManager.currentTitle = "Player Deletion"
+            contentManager.currentDisplay = "Are you sure you want to delete the player \(contentManager.tableValues[contentManager.savedDropdownInformation].title)"
+            contentManager.currentOptions = [(68, "Yes", 1), (12,"No",1)]
+        case 68: // Remove the player
+            contentManager.currentTitle = "Deleted Player"
+            contentManager.currentDisplay = "The player has successfully been deleted"
+            
+            // Get the group and activities
+            let activity: Activity = getSelectedActivity()
+            let player: Person = getSelectedPlayer()
+            
+            activity.removePerson(player)
+            
+            contentManager.currentOptions = [(12, "Exit Menu", 1)]
         case 69: break
+        case 70: break
+        case 71: break
+        case 72: break
+        case 73: break
+        case 74: break
+        case 75: break
+        case 76: break
+        case 77: break
+        case 78: break
+        case 79: break
+        case 80: break
         default: break
         }
     }

@@ -891,6 +891,18 @@ func getSelectedTeam() -> Team {
     }
 }
 
+func getSelectedTeams() -> [Team] {
+    let activity: Activity = getSelectedActivity()
+    if contentManager.selectedValues.group == -1 {
+        let teams: [Team] = activity.teams
+        return teams
+    } else {
+        let group: Group = getSelectedGroup()
+        let teams: [Team] = group.teams
+        return teams
+    }
+}
+
 // Function to make getting a player easier
 func getSelectedPlayer() -> Person {
     // Get the activity
@@ -919,23 +931,38 @@ func getSelectedPlayers() -> [Person] {
     // Get the activity
     let activity: Activity = getSelectedActivity()
     
+    // First check if it's a search rule
+    if contentManager.selectedValues.search != -1 {
+        let players: [Person] = getSelectedSearch().players
+        return players
+        
     // If no group or team is selected then get from activity
-    if contentManager.selectedValues.team == -1 && contentManager.selectedValues.group == -1 {
+    } else if contentManager.selectedValues.team == -1 && contentManager.selectedValues.group == -1 {
         let players: [Person] = activity.people
         return players
     
     // If there is a group selected and no team selected
-    } else if contentManager.selectedValues.team == -1 {
+    } else if contentManager.selectedValues.team == -1 && contentManager.selectedValues.group != -1 {
         let group: Group = getSelectedGroup()
         let players: [Person] = group.people
         return players
     
     // And finally if none of those worked then it's A-G-T-P or A-T-P, which means we're relying on a team to get the player, so all complex logic is already handled in the getSelectedTeam() function
-    } else {
+    } else if contentManager.selectedValues.team != -1 && contentManager.selectedValues.group != -1 {
         let team: Team = getSelectedTeam()
         let players: [Person] = team.people
         return players
     }
+    
+    // Otherwise let's just return a blank case (Which shouldn't ever happen)
+    return []
+}
+
+// Function to get a search rule from the saved value
+func getSelectedSearch() -> SearchRule {
+    let activity: Activity = getSelectedActivity()
+    let searchRule: SearchRule = activity.searchRules[contentManager.selectedValues.search]
+    return searchRule
 }
 
 // Function to get a player from a saved array of ID's
