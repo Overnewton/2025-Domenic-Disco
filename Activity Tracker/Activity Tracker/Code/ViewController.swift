@@ -187,7 +187,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentDisplay = "Please input your details"
             
             // Create a text field for password input, a text field for username input and a button to input data
-            contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Input Data",1)]
+            contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Input Data",1),(-20,"Exit Menu",1)]
             clearTextFieldData()
             
         case -15: // Create Account Confirmation
@@ -240,7 +240,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.currentDisplay = "Unfortunately that username is already in use, please select a different one"
                 
                 // Create a text field for password input, a text field for username input, and a button to input data
-                contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Submit Data",1)]
+                contentManager.currentOptions = [(0,"Password",2),(0,"Username",2),(-15,"Submit Data",1), (-20,"Exit Menu",1)]
                 clearTextFieldData()
             }
             
@@ -326,6 +326,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // Use this function to add some test activities:
             // addTestActivities()
+            // controlledTest()
             
             saveGameData()
         case 1: // View Activities
@@ -532,7 +533,6 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
             
             // Get the activity as it's own constant for ease of use
-            let activity: Activity = getSelectedActivity()
             let group: Group = getSelectedGroup()
             
             contentManager.currentDisplay = "You are currently viewing \(group.name), a group that has \(group.people.count) people, and \(group.teams.count) teams."
@@ -635,8 +635,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             }
             
             // Get the activity as it's own constant for ease of use
-            let activity: Activity = getSelectedActivity()
-            var team: Team = getSelectedTeam()
+            let team: Team = getSelectedTeam()
             
             contentManager.currentDisplay = "You are currently viewing \(team.name), a team that has \(team.people.count) people."
             
@@ -687,7 +686,6 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 
             case "View All Players In Group":
-                let activity: Activity = getSelectedActivity()
                 let group: Group = getSelectedGroup()
                 displayPeople = group.people
             default: break
@@ -896,8 +894,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
         case 18: // View Player Statistics Screen
             contentManager.currentTitle = "Select Player Statistics"
-            let activity: Activity = getSelectedActivity()
-            var player: Person = getSelectedPlayer()
+            let player: Person = getSelectedPlayer()
             
             // Display all of the players past values
             contentManager.tableValues = [("Overall Total","")]
@@ -910,8 +907,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
         case 19: // View Player Statistics Screen
             contentManager.currentTitle = "View Player Statistics"
-            let activity: Activity = getSelectedActivity()
-            var player: Person = getSelectedPlayer()
+            let player: Person = getSelectedPlayer()
             
             var useStatistics: StatisticHolder?
             
@@ -952,9 +948,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             // Showcase the statistics for the activity
             contentManager.tableValues = []
-            for statistic in activity.overallStatistics {
+            for (index,statistic) in activity.overallStatistics.enumerated() {
                 if statistic.rule.isEmpty {
-                    contentManager.tableValues.append((title: statistic.name,value: "Base Value: " + String(statistic.value)))
+                    contentManager.tableValues.append((title: statistic.name,value: "Base Value: " + String(statistic.value) + ", Total: " + String(activity.combined.statistics[index].value)))
                 } else {
                     contentManager.tableValues.append((title: statistic.name, value: "Rule: " + statistic.rule[0].toString()))
                 }
@@ -963,8 +959,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 22: // View Player
             contentManager.currentTitle = "View Player"
             // Get activity and player
-            let activity: Activity = getSelectedActivity()
-            var player: Person = getSelectedPlayer()
+            let player: Person = getSelectedPlayer()
             
             // Set the value of the selected player
             if sender.titleLabel!.text == "View Player" {
@@ -1455,7 +1450,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 saveGameData()
             } else {
-                var usePlayers: [Person] = getSelectedPlayers()
+                let usePlayers: [Person] = getSelectedPlayers()
                 
                 var indexCount: Int = 0
                 // Run through the players in the activity
@@ -1514,8 +1509,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentOptions = [(46,"Yes",1), (22,"No",1)]
             
             // Declare some variables
-            var team: Team = getSelectedTeam()
-            var player: Person = getSelectedPlayer()
+            let team: Team = getSelectedTeam()
+            let player: Person = getSelectedPlayer()
             
             // Figure out whether it's team statistics or player statistics
             switch sender.titleLabel?.text {

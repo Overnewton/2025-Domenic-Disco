@@ -155,13 +155,12 @@ class Activity: Codable {
         
         // Run through each of the people in the activity
         for player in self.people {
-            
+            player.calculateCurrentStatistics()
             // Get their statistics
             for (index,statistic) in player.currentStatistics.statistics.enumerated() {
                 
                 // If the statistic is a pure value then add it to the overall tally
                 if statistic.rule.isEmpty {
-                    print(self.combined.statistics.count, index)
                     self.combined.statistics[index].value += statistic.value
                 }
             }
@@ -249,8 +248,25 @@ class Group: PlayerHolder {
         super.init(name: name, people: people, uniqueID: uniqueID)
     }
     
-    required init(from decoder: any Decoder) throws {
-        fatalError("init(from:) has not been implemented")
+    enum CodingKeys: String, CodingKey {
+        case teams
+    }
+
+    required init(from decoder: Decoder) throws {
+        // Decode Group-specific values first
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        teams = try container.decode([Team].self, forKey: .teams)
+        
+        // Then decode the superclass
+        try super.init(from: decoder)
+    }
+
+    override func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(teams, forKey: .teams)
+        
+        // Then encode superclass
+        try super.encode(to: encoder)
     }
     
     // Function to get a players postion within the groups's players
@@ -288,8 +304,14 @@ class Team: PlayerHolder {
         super.init(name: name, people: people, uniqueID: uniqueID)
     }
     
-    required init(from decoder: any Decoder) throws {
-        fatalError("init(from:) has not been implemented")
+    required init(from decoder: Decoder) throws {
+        // Then decode the superclass
+        try super.init(from: decoder)
+    }
+
+    override func encode(to encoder: Encoder) throws {
+        // Then encode superclass
+        try super.encode(to: encoder)
     }
     
     // Function to get a players postion within the teams's players
@@ -419,6 +441,24 @@ class PlayerHolder: Codable {
         self.name = name
         self.people = people
         self.uniqueID = uniqueID
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case name, people, uniqueID
+    }
+
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        people = try container.decode([Person].self, forKey: .people)
+        uniqueID = try container.decode(Int.self, forKey: .uniqueID)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(people, forKey: .people)
+        try container.encode(uniqueID, forKey: .uniqueID)
     }
 }
 
@@ -573,47 +613,6 @@ class Calculation: Codable {
         return outputValue!
     }
 }
-
-// Function used for testing that adds 4 random activities to your user and fills the activities with players and statistics
-func addTestActivities() {
-    for index in 1...4 {
-        user.activities.append(Activity(name: "Activity \(index)", storageType: 1, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall", statistics: []), overallStatistics: [], searchRules: []))
-        for index in 1...Int.random(in: 5...12) {
-            let newStatistic: Statistic = Statistic(name: "Statistic\(index)", value: Float.random(in: 0...5000), rule: [])
-            user.activities[user.activities.count - 1].overallStatistics.append(newStatistic)
-            user.activities[user.activities.count - 1].combined.statistics.append(newStatistic)
-        }
-        for _ in 1...Int.random(in: 100...300) {
-            user.activities.last!.people.append(createTestPlayer(for: user.activities.last!))
-        }
-    }
-}
-
-// Function that creates a random player for a given activity just for use in testing that the application works
-func createTestPlayer(for activity: Activity) -> Person {
-    let returnPerson: Person = Person(details: PersonDetails(name: "Player \(activity.people.count)", uniqueID: user.playerCount, group: FixedStorage(index: -1, name: "", id: -1), team: FixedStorage(index: -1, name: "", id: -1)), currentStatistics: StatisticHolder(description: "Current", statistics: []), pastPeriods: [:])
-    user.playerCount += 1
-    
-    returnPerson.currentStatistics.statistics = activity.overallStatistics
-    
-    for index in 1...5 {
-        returnPerson.pastPeriods[index] = StatisticHolder(description: "Period \(index)", statistics: activity.overallStatistics)
-        for (index2,statistic) in returnPerson.pastPeriods[index]!.statistics.enumerated() {
-            if statistic.rule.isEmpty {
-                returnPerson.pastPeriods[index]?.statistics[index2].value *= Float.random(in: 0.5...3)
-            } else {
-                let calculation: Calculation = (returnPerson.pastPeriods[index]?.statistics[index].rule[0])!
-                
-                returnPerson.pastPeriods[index]?.statistics[index2].value = calculation.run(inputPerson: (returnPerson.pastPeriods[index])!)
-            }
-        }
-    }
-    
-    returnPerson.calculateCurrentStatistics()
-    
-    return returnPerson
-}
-
 
 // Easy use of values for automatic calculations
 enum Operation: Codable {

@@ -5,42 +5,47 @@ let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDo
 
 // Function to load the data from save file
 func loadGameData() {
-        do {
-            // Declare the decoding method
-            let decoder = JSONDecoder()
-            
-            // Get the relevant json file from the users device
-            let jsonURL = URL(fileURLWithPath: "\(user.details.username)-SaveData.json", relativeTo: directoryURL)
-            
-            // Get the data from that json file
-            let jsonData = try Data(contentsOf: jsonURL)
-            
-            // Based on the value we're looking at, set that specific area
-            user = try decoder.decode(User.self, from: jsonData)
-        }
-        catch {
-        }
+    do {
+        // Declare the decoding method
+        let decoder = JSONDecoder()
+        
+        // Get the relevant json file from the users device
+        let jsonURL = URL(fileURLWithPath: "\(user.details.username)-SaveData.json", relativeTo: directoryURL)
+        
+        // Get the data from that json file
+        let jsonData = try Data(contentsOf: jsonURL)
+        
+        // Based on the value we're looking at, set that specific area
+        user = try decoder.decode(User.self, from: jsonData)
+    } catch {
+    }
 }
 
 // Function to save the data to the save file
 func saveGameData() {
-        // Declare the encoder
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
+    
+    // Calculate the current statistics so that they're saved to the file
+    for activity in user.activities {
+        activity.calculateCurrentStatistics()
+    }
+    
+    // Declare the encoder
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = .prettyPrinted
+    
+    // Declare a basic variable for jsonData
+    let jsonData = try! encoder.encode(user)
+    do {
+        // Turn that data into a json string
+        let jsonString: String = String(data: jsonData, encoding: .utf8)!
         
-        // Declare a basic variable for jsonData
-        let jsonData = try! encoder.encode(user)
-        do {
-            // Turn that data into a json string
-            let jsonString: String = String(data: jsonData, encoding: .utf8)!
-            
-            // Figure out where the relevant json file is
-            let jsonURL: URL = URL(fileURLWithPath: "\(user.details.username)-SaveData.json", relativeTo: directoryURL)
-            
-            // Add that text to the json file
-            try jsonString.write(to: jsonURL, atomically: true, encoding: .utf8)
-        }
-        catch {
+        // Figure out where the relevant json file is
+        let jsonURL: URL = URL(fileURLWithPath: "\(user.details.username)-SaveData.json", relativeTo: directoryURL)
+        
+        // Add that text to the json file
+        try jsonString.write(to: jsonURL, atomically: true, encoding: .utf8)
+    }
+    catch {
     }
 }
 
@@ -77,21 +82,18 @@ func getOldSaves() -> String {
 // Function to check if a password and username input is correct
 func acceptableAccount(input: [String]) -> Bool {
     // Get the current account details
-    var values = getOldSaves().components(separatedBy: ",")
+    let values = getOldSaves().components(separatedBy: ",")
     let userIndex = input.count - 1
     
     // If there are old files
     if getOldSaves() != "" {
         
-        // Remove the incorrect input from start of the array
-        values.removeFirst()
-        
         // Run through each input
         for user in values {
             if user != "" {
-                // If the username is the same then return an error
-                let values: [String] = user.components(separatedBy: "-")
-                if values[1] == input[userIndex] {
+                // If the username is the same then don't let them use the name
+                let userValues: [String] = user.components(separatedBy: "-")
+                if userValues[1] == input[userIndex] {
                     return false
                 }
             }
