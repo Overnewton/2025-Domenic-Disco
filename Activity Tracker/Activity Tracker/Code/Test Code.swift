@@ -23,7 +23,7 @@ func controlledTest() {
         user.activities[user.activities.count - 1].combined.statistics.append(newStatistic)
     }
     
-    for index in 1...10 {
+    for _ in 1...10 {
         let newPlayer: Person = controlledPlayer(for: user.activities.last!)
         user.activities.last!.people.append(newPlayer)
     }
@@ -32,7 +32,7 @@ func controlledTest() {
         let newGroup: Group = Group(name: "Group \(index)", people: [], teams: [], uniqueID: index)
         user.activities.last!.groups.append(newGroup)
         
-        for index in 1...10 {
+        for _ in 1...10 {
             let newPlayer: Person = controlledPlayer(for: user.activities.last!)
             user.activities.last!.groups.last!.people.append(newPlayer)
             user.activities.last!.people.append(newPlayer)
@@ -43,7 +43,7 @@ func controlledTest() {
             user.activities.last!.teams.append(newTeam)
             newGroup.teams.append(newTeam)
             
-            for index in 1...10 {
+            for _ in 1...10 {
                 let newPlayer: Person = controlledPlayer(for: user.activities.last!)
                 user.activities.last!.groups.last!.teams.last!.people.append(newPlayer)
                 user.activities.last!.groups.last!.people.append(newPlayer)
@@ -56,7 +56,7 @@ func controlledTest() {
         let newTeam: Team = Team(name: "Activity Team \(index)", people: [], uniqueID: (index + 4))
         user.activities.last!.teams.append(newTeam)
         
-        for index in 1...10 {
+        for _ in 1...10 {
             let newPlayer: Person = controlledPlayer(for: user.activities.last!)
             user.activities.last!.teams.last!.people.append(newPlayer)
             user.activities.last!.people.append(newPlayer)

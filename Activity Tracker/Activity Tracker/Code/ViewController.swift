@@ -549,7 +549,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentTitle = "Select Team"
             
             // Declare the array of teams
-            var useTeams: [Team] = getSelectedTeams()
+            let useTeams: [Team] = getSelectedTeams()
             
             // If no teams exist then have the user make a team
             if useTeams.isEmpty {
@@ -629,13 +629,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 contentManager.currentDisplay = "Please select the player that you want to view using the dropdown menu. Or press \"Add New Player\" to input a new player."
                 
                 // Create a tbl-dropdown for the player, a button for viewing a player, a button to create a new player, and a button to exit the page
-                contentManager.currentOptions = [(0,"Player",7), (22,"View Player",1), (13,"Add New Player",1)]
+                contentManager.currentOptions = [(0,"Player",7), (22,"View Player",1), (13,"Add New Player",1),(67,"Delete Selected Player",1)]
                 
                 // Make the exit button go to the right page
                 switch sender.titleLabel!.text {
                 case "View All Players": contentManager.currentOptions += [(52,"Search Players",1),(7,"Exit",1)]
-                case "View All Players In Group", "View Players For Group": contentManager.currentOptions += [(52,"Search Group",1), (9,"Exit",1)]
-                case "View Players For Team": contentManager.currentOptions += [(52,"Search Team",1), (11,"Exit",1)]
+                case "View All Players In Group", "View Players For Group": contentManager.currentOptions += [(52,"Search Players",1), (9,"Exit",1)]
+                case "View Players For Team": contentManager.currentOptions += [(52,"Search Players",1), (11,"Exit",1)]
                 default: break
                 }
                 
@@ -1191,7 +1191,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 // If they did, ensure that the name isn't already being used
             } else {
                 var dupeName: Bool = false
-                for group in getSelectedActivity().groups {
+                for group in getSelectedGroups() {
                     if group.name == contentManager.savedTextfieldInformation[0] {
                         dupeName = true
                     }
@@ -1244,7 +1244,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                         
                         // If they match the selected dropdown segment then they're the one that got selected
                         if indexCount == contentManager.selectedDropdownIndex {
-                            getSelectedActivity().groups.last?.people.append(player)
+                            getSelectedGroups().last?.people.append(player)
                             // Otherwise we must try again and see if the next one matches
                         } else {
                             indexCount += 1
