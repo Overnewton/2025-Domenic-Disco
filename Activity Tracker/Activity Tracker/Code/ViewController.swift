@@ -1814,7 +1814,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             contentManager.currentOptions = [(65, "Yes", 1), (10,"No",1)]
         case 65:
             contentManager.currentTitle = "Team Deletion"
-            contentManager.currentDisplay = "What would you like to do with the players associated with that group?"
+            contentManager.currentDisplay = "What would you like to do with the players associated with that team?"
             contentManager.currentOptions = [(66, "Don't Delete Players", 1),(66, "Delete Players", 1), (64, "Exit Menu", 1)]
         case 66:
             contentManager.currentTitle = "Deleted Team"
@@ -1859,9 +1859,26 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             activity.removePerson(player)
             
             contentManager.currentOptions = [(12, "Exit Menu", 1)]
-        case 69: break
-        case 70: break
-        case 71: break
+        case 69: // Activity Deletion Confirmation
+            contentManager.currentTitle = "Delete Activity"
+            contentManager.currentDisplay = "Are you certain you would like to delete this activity? Please note that any delected activity is completely unrecoverable, you will not be able to recover it."
+            contentManager.currentOptions = [(70, "Yes", 1), (12,"No",1)]
+        case 70: // Activity Deletion Confirmation
+            contentManager.currentTitle = "Delete Activity"
+            contentManager.currentDisplay = "Are you 100% certain?"
+            contentManager.currentOptions = [(71, "Yes", 1), (12,"No",1)]
+        case 71: // Remove the activity
+            contentManager.currentTitle = "Deleted Activity"
+            contentManager.currentDisplay = "The activity has successfully been deleted"
+            
+            // Delete the activity
+            user.activities.remove(at: contentManager.selectedValues.activity)
+            
+            // Save the change
+            saveGameData()
+            
+            // Exit to menu
+            contentManager.currentOptions = [(0, "Exit Menu", 1)]
         case 72: break
         case 73: break
         case 74: break

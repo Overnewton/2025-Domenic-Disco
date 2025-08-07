@@ -139,4 +139,3 @@ func getPlayerFromSavedNumber() -> Person {
     let playerIndex: Int = activity.searchPlayersFor(ID: playerID)
     return activity.people[playerIndex]
 }
-
