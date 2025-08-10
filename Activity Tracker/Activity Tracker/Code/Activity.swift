@@ -4,7 +4,7 @@ import Foundation
 var user: User = User(activities: [], details: UserDetails(username: "", password: ""), playerCount: 0, groupCount: 0, teamCount: 0)
 
 // Struct for the user
-//      Could be a class, but I prefer struct
+//      Could be a class, but I prefer struct since it's never being copied and allows for statements without accidentally changing stuff
 struct User: Codable {
     // Stores all of the users activities
     var activities: [Activity]
@@ -14,6 +14,7 @@ struct User: Codable {
     
     // Stores their counts for later use in creation with unique ID's
     //          Could be their own struct that stores it, but it's fine as just values here
+    // Int's because just a fixed number
     var playerCount: Int
     var groupCount: Int
     var teamCount: Int
@@ -21,6 +22,7 @@ struct User: Codable {
 
 // Stores the users account details
 struct UserDetails: Codable {
+    // String values because save as text
     var username: String
     var password: String
 }
@@ -29,29 +31,30 @@ struct UserDetails: Codable {
 //      Stores it using class since it's never being referenced while not needing to be changed in value
 class Activity: Codable {
     
-    // Stores the activities name
+    // Stores the activities name, string cause text
     var name: String
     
-    // Stores whether it has teams, groups, etc.
+    // Stores whether it has teams, groups, etc, int because I couldn't be bothered with an enum for this
     var storageType: Int
     
-    // Stores the overall players for the activity
+    // Stores the overall players for the activity, array because multiple players
     var people: [Person]
     
-    // Stores the groups for the activity
+    // Stores the groups for the activity, array because multiple groups
     var groups: [Group]
     
-    // Stores the overall teams for the activity
+    // Stores the overall teams for the activity, array because multiple teams
     var teams: [Team]
     
-    // Stores any search rules that the player has created for this activity
+    // Stores any search rules that the player has created for this activity, array because multiple rules
     var searchRules: [SearchRule]
     
     // Stores the total combined statistics across every player in the group so that you can view this stuff
     //          Like maybe you want to know when your group reaches a total of 10000 kills, or when the average kdr across the whole activity is above 1
+    // Not an array, since it just stores one value for the current
     var combined: StatisticHolder
     
-    // Array of just the statistics with no values associated
+    // Array of just the statistics with no values associated, array since many statistics
     var overallStatistics: [Statistic]
 
     // Function to get a players postion within the activity's players
@@ -73,7 +76,7 @@ class Activity: Codable {
         for (index,team) in teams.enumerated() {
             
             // If the ID matches then return their index
-            if team.uniqueID == ID {
+            if team.getUniqueID() == ID {
                 return index
             }
         }
@@ -86,7 +89,7 @@ class Activity: Codable {
         for (index,group) in groups.enumerated() {
             
             // If the ID matches then return their index
-            if group.uniqueID == ID {
+            if group.getUniqueID() == ID {
                 return index
             }
         }
@@ -97,7 +100,7 @@ class Activity: Codable {
     func removeGroup(_ group: Group) {
         
         // Remove them from the activity
-        let groupCheck: Int = searchGroupsFor(ID: group.uniqueID)
+        let groupCheck: Int = searchGroupsFor(ID: group.getUniqueID())
         if groupCheck != -1 {
             groups.remove(at: groupCheck)
         }
@@ -107,14 +110,14 @@ class Activity: Codable {
     func removeTeam(_ team: Team) {
         // Remove them from the groups
         for group in groups {
-            let teamCheck: Int = group.searchTeamsFor(ID: team.uniqueID)
+            let teamCheck: Int = group.searchTeamsFor(ID: team.getUniqueID())
             if teamCheck != -1 {
                 group.teams.remove(at: teamCheck)
             }
         }
         
         // Remove them from the activity
-        let teamCheck: Int = searchTeamsFor(ID: team.uniqueID)
+        let teamCheck: Int = searchTeamsFor(ID: team.getUniqueID())
         if teamCheck != -1 {
             teams.remove(at: teamCheck)
         }
@@ -227,21 +230,23 @@ class Activity: Codable {
 
 // Struct to store a search rule
 struct SearchRule: Codable {
-    // Stores the name the user used for it
+    // Stores the name the user used for it, String cause text
     var name: String
     
-    // Stores the rules used in the search
+    // Stores the rules used in the search, String cause text
     var rules: [String]
     
-    // Stores the players who are from that search
+    // Stores the players who are from that search, Array cause multiple player outputs
     var players: [Person]
 }
 
 // Used to hold groups of people within an activity
 // Can hold further teams within the group
 class Group: PlayerHolder {
-    var teams: [Team] // The teams within the group
+    var teams: [Team] // The teams within the group, Array cause multiple teams
     
+    
+    // Okay I have a slight clue how this works but hard to explain
     init(name: String, people: [Person], teams: [Team], uniqueID: Int) {
         self.teams = teams
         
@@ -262,6 +267,7 @@ class Group: PlayerHolder {
     }
 
     override func encode(to encoder: Encoder) throws {
+        // Encode Group-specific values first
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(teams, forKey: .teams)
         
@@ -288,7 +294,7 @@ class Group: PlayerHolder {
         for (index,team) in teams.enumerated() {
             
             // If the ID matches then return their index
-            if team.uniqueID == ID {
+            if team.getUniqueID() == ID {
                 return index
             }
         }
@@ -334,17 +340,18 @@ class Team: PlayerHolder {
 // Example Use : The player is in team 3, which is in index slot 2 of the Teams array
 // If team 2 gets removed, team 3 moves to index slot 1 which now means that any values that refer to team 3 as index slot 2 are now out of whack
 // Unsure about where specifically this could occur, or what problems it may bring to my code, but this Fixed Storage system is just there to make sure that if problems do pop up later in my code, that I can handle them much easier without any code refactoring
+// Stores only one value, not an array, since this is just one positions value
 struct FixedStorage: Codable {
-    var index: Int
-    var name: String
-    var id: Int
+    var index: Int // Int since index position
+    var name: String // String since it's the name as text
+    var id: Int // ID since it's the number of elements generated before this
 }
 
 // Class to store a person
 class Person: Codable {
     var details: PersonDetails
     var currentStatistics: StatisticHolder
-    var pastPeriods: [Int : StatisticHolder]
+    var pastPeriods: [Int : StatisticHolder] // Dictionary since multiple periods, accessed by an index
     
     init(details: PersonDetails, currentStatistics: StatisticHolder, pastPeriods: [Int : StatisticHolder]) {
         self.details = details
@@ -434,13 +441,20 @@ class Person: Codable {
 // Used to uphold inheritance/generalisation or whichever one it is
 class PlayerHolder: Codable {
     var name: String // Name of the group/team
-    var people: [Person] // The people in the group/team
-    var uniqueID: Int // The unqiue identifier of the group/team
+    var people: [Person] // The people in the group/team, array since multiple people
+    
+    // The uniqueID is private var since shouldn't be able to be modified or accessed easily
+    private var uniqueID: Int // The unqiue identifier of the group/team
     
     init(name: String, people: [Person], uniqueID: Int) {
         self.name = name
         self.people = people
         self.uniqueID = uniqueID
+    }
+    
+    // Function to get the holder's ID
+    func getUniqueID() -> Int {
+        return uniqueID
     }
     
     enum CodingKeys: String, CodingKey {
@@ -462,15 +476,16 @@ class PlayerHolder: Codable {
     }
 }
 
+// Struct used to represent the details for a Person element
 struct PersonDetails: Codable {
-    var name: String
-    var uniqueID: Int
-    var group: FixedStorage
-    var team: FixedStorage
+    var name: String // The persons name
+    var uniqueID: Int // Their ID
+    var group: FixedStorage // The group they're in
+    var team: FixedStorage // The team they're in
     
     // Function to set the players group and team details by inputting either a group or team
     
-    // Mr Robertson, this is some good use of inheriting and generalising cause I'm using the array of PlayerHolders to mean both Groups and Teams!!!!!!!!!!
+    // This is some use of inheriting and generalising cause I'm using the array of PlayerHolders to mean both Groups and Teams which meets the SAT Criterion thing
     mutating func getFrom(_ input: [PlayerHolder]) {
         
         // If the input is an array then run this code for each of the values
@@ -482,14 +497,14 @@ struct PersonDetails: Codable {
         // If the input is a group, set the players group id and index
         } else if input[0] is Group {
             let addGroup = input[0] as! Group
-            group.id = addGroup.uniqueID
-            group.index = contentManager.selectedValues.group
+            self.group.id = addGroup.getUniqueID()
+            self.group.index = contentManager.selectedValues.group
         
         // If the input is a team, set the players team id and index
         } else if input[0] is Team {
             let addTeam = input[0] as! Team
-            team.id = addTeam.uniqueID
-            team.index = contentManager.selectedValues.team
+            self.team.id = addTeam.getUniqueID()
+            self.team.index = contentManager.selectedValues.team
         }
     }
 }

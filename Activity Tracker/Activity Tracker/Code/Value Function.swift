@@ -57,7 +57,7 @@ func getSelectedTeams() -> [Team] {
     let activity: Activity = getSelectedActivity()
     
     // If we have group selected then get teams from group
-    if contentManager.selectedValues.group != -1 {
+    if contentManager.selectedValues.group == -1 {
         let teams: [Team] = activity.teams
         return teams
     

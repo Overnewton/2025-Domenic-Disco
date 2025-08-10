@@ -15,7 +15,7 @@ import Foundation
 // Players in Activity (10)
 // And a more acceptable range of statistics, being between 0.9 and 1.1x the average which is also fixed from 1000-5000 so min and max statistic values of 900 and 5500
 func controlledTest() {
-    user.activities.append(Activity(name: "Test Activity", storageType: 1, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall", statistics: []), overallStatistics: [], searchRules: []))
+    user.activities.append(Activity(name: "Activity \(user.activities.count)", storageType: 1, people: [], groups: [], teams: [], combined: StatisticHolder(description: "Overall", statistics: []), overallStatistics: [], searchRules: []))
     
     for index in 1...5 {
         let newStatistic: Statistic = Statistic(name: "Statistic\(index)", value: Float(index * 1000), rule: [])
@@ -71,7 +71,7 @@ func controlledPlayer(for activity: Activity) -> Person {
     
     returnPerson.currentStatistics.statistics = activity.overallStatistics
     
-    for index in 1...2 {
+    for index in 0...1 {
         returnPerson.pastPeriods[index] = StatisticHolder(description: "Period \(index)", statistics: activity.overallStatistics)
         for (index2,statistic) in returnPerson.pastPeriods[index]!.statistics.enumerated() {
             if statistic.rule.isEmpty {
